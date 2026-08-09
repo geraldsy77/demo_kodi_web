@@ -1,0 +1,39 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "kodi-web",
+  "pages_build_output_dir": "./dist",
+  "compatibility_date": "2026-08-08",
+  "services": [
+    {
+      "binding": "API",
+      "service": "kodi-cloudflare-api"
+    }
+  ],
+  "vars": {
+    "DEPLOYMENT_ENVIRONMENT": "local"
+  },
+  "env": {
+    "preview": {
+      "services": [
+        {
+          "binding": "API",
+          "service": "kodi-cloudflare-api"
+        }
+      ],
+      "vars": {
+        "DEPLOYMENT_ENVIRONMENT": "preview"
+      }
+    },
+    "production": {
+      "services": [
+        {
+          "binding": "API",
+          "service": "kodi-cloudflare-api"
+        }
+      ],
+      "vars": {
+        "DEPLOYMENT_ENVIRONMENT": "production"
+      }
+    }
+  }
+}

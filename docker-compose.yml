@@ -1,0 +1,27 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      API_PORT: 3001
+      KODI_DB_HOST: ${KODI_DB_HOST:-}
+      KODI_DB_PORT: ${KODI_DB_PORT:-3306}
+      KODI_DB_USER: ${KODI_DB_USER:-}
+      KODI_DB_PASSWORD: ${KODI_DB_PASSWORD:-}
+      KODI_VIDEO_DB: ${KODI_VIDEO_DB:-}
+    ports:
+      - "3001:3001"
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "8181:80"

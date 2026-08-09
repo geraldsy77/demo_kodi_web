@@ -1,0 +1,24 @@
+{
+  "name": "@kodi/cloudflare-api",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "dependencies": {
+    "zod": "^4.4.3"
+  },
+  "scripts": {
+    "build": "wrangler deploy --dry-run --outdir dist",
+    "types": "wrangler types src/worker-configuration.d.ts",
+    "test": "vitest run",
+    "lint": "eslint src vitest.config.ts --max-warnings=0"
+  },
+  "devDependencies": {
+    "@cloudflare/vitest-pool-workers": "^0.20.3",
+    "@eslint/js": "^9.0.0",
+    "eslint": "^9.0.0",
+    "typescript": "^5.9.0",
+    "typescript-eslint": "^8.0.0",
+    "vitest": "^4.1.0",
+    "wrangler": "^4.120.0"
+  }
+}

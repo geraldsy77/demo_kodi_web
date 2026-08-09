@@ -1,0 +1,28 @@
+node_modules/
+dist/
+coverage/
+.env
+.env.*
+!.env.example
+.DS_Store
+*.log
+playwright-report/
+test-results/
+*.tsbuildinfo
+.kodi-sync-state.json
+.kodi-sync-state.json.tmp
+.vscode/*.local.json
+
+# Cloudflare/Miniflare local state
+.wrangler/
+
+# Local Worker secrets
+.dev.vars
+.dev.vars.*
+
+# Certificates and private keys
+*.pem
+*.key
+*.p12
+*.pfx
+secrets.json

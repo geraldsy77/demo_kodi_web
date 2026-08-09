@@ -1,0 +1,20 @@
+{
+  "name": "kodi-web",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "apps/api",
+    "apps/web",
+    "apps/cloudflare-probe",
+    "apps/cloudflare-api"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace @kodi/api & npm run dev --workspace @kodi/web",
+    "build": "npm run build --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}
