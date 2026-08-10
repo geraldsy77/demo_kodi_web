@@ -92,6 +92,12 @@ workspace so it reuses validated SELECT-only MariaDB configuration. It exports
 bounded pages of verified DTO fields, retries deterministic HTTPS batches, and
 persists only non-sensitive resume metadata. See `docs/KODI_SYNC_AGENT.md`.
 
+KODI-406 schedules that agent on the private Windows LAN host and publishes a
+secret-free `/api/sync/status` health signal. A failed, partial, or overdue sync
+does not replace or disable the last completed D1 snapshot. Operational setup,
+manual recovery, and Stage 1 rollback are documented in
+`docs/KODI_SYNC_OPERATIONS.md`.
+
 ## Stage 2 design constraint from day one
 
 The frontend must depend only on the HTTP API contract, not Express implementation details. This makes it possible to replace the Express API with a Worker later.

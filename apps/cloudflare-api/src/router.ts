@@ -3,6 +3,7 @@ import {
   getMovie,
   getMovies,
   getSummary,
+  getSyncStatus,
   getTvShow,
   getTvShows,
   search,
@@ -39,6 +40,13 @@ export async function route(request: Request, env: Env): Promise<Response> {
   }
   if (url.pathname === '/api/library/summary') {
     return Response.json(await getSummary(env.DB));
+  }
+  if (url.pathname === '/api/sync/status') {
+    const staleAfterSeconds = Number(env.SYNC_STALE_AFTER_SECONDS);
+    if (!Number.isFinite(staleAfterSeconds) || staleAfterSeconds <= 0) {
+      throw new Error('Invalid stale-data configuration.');
+    }
+    return Response.json(await getSyncStatus(env.DB, staleAfterSeconds));
   }
   if (url.pathname === '/api/movies') {
     const { page, pageSize } = parsePagination(url.searchParams);

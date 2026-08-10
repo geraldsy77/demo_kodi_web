@@ -32,3 +32,9 @@ For local development, put `SYNC_TOKEN` in an ignored `.dev.vars` file inside
 `apps/cloudflare-api`. Snapshot batches use monotonically increasing integer
 versions and unique batch IDs. Completing a snapshot atomically activates it
 and removes superseded snapshot data.
+
+`GET /api/sync/status` is public and secret-free. It reports the active
+snapshot's completion time, duration, row counts, and whether it is older than
+the configured `SYNC_STALE_AFTER_SECONDS` threshold. Stale snapshots continue
+serving the normal read API. See `docs/KODI_SYNC_OPERATIONS.md` for scheduling,
+monitoring, recovery, and rollback.

@@ -11,6 +11,8 @@ test-results/
 *.tsbuildinfo
 .kodi-sync-state.json
 .kodi-sync-state.json.tmp
+.kodi-sync-status.json
+.kodi-sync-status.json.tmp
 .vscode/*.local.json
 
 # Cloudflare/Miniflare local state

@@ -25,6 +25,15 @@ describe('Cloudflare Pages API proxy', () => {
     expect(fetch).not.toHaveBeenCalled();
   });
 
+  it('forwards the public synchronization status route', async () => {
+    const fetch = vi.fn().mockResolvedValue(Response.json({ status: 'current', stale: false }));
+    const response = await handlePublicApiRequest(
+      new Request('https://example.test/api/sync/status'), { fetch },
+    );
+    expect(response.status).toBe(200);
+    expect(fetch).toHaveBeenCalledOnce();
+  });
+
   it('rejects write methods before invoking the read Worker', async () => {
     const fetch = vi.fn();
     const response = await handlePublicApiRequest(

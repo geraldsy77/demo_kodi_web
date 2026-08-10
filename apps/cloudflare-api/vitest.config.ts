@@ -13,6 +13,7 @@ export default defineConfig({
         bindings: {
           TEST_MIGRATIONS: migrations,
           SYNC_TOKEN: 'test-sync-token',
+          SYNC_STALE_AFTER_SECONDS: '172800',
         },
       },
     }),

@@ -412,7 +412,7 @@ of KODI library metadata without exposing the Synology MariaDB service.
 **Type:** Story  
 **Priority:** Medium  
 **Sprint:** Future  
-**Status:** BACKLOG  
+**Status:** DONE
 **Story points:** 3  
 **Depends on:** KODI-404, KODI-405
 

@@ -2,7 +2,7 @@ interface ApiService {
   fetch(request: Request): Promise<Response>;
 }
 
-const publicApiRoute = /^\/api\/(health|library\/summary|movies(?:\/[^/]+)?|tvshows(?:\/[^/]+)?|search)$/;
+const publicApiRoute = /^\/api\/(health|library\/summary|sync\/status|movies(?:\/[^/]+)?|tvshows(?:\/[^/]+)?|search)$/;
 
 export async function handlePublicApiRequest(
   request: Request,

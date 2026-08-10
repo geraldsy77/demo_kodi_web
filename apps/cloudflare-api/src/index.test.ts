@@ -11,7 +11,7 @@ beforeEach(async () => {
   await env.DB.batch([
     env.DB.prepare(`INSERT INTO sync_snapshots
       (id, created_at, completed_at, is_active)
-      VALUES ('snapshot-1', '2026-08-09T00:00:00Z', '2026-08-09T00:01:00Z', 1)`),
+      VALUES ('snapshot-1', '2020-08-09T00:00:00Z', '2020-08-09T00:01:00Z', 1)`),
     env.DB.prepare(`INSERT INTO movies (
       snapshot_id, id, title, search_title, plot, premiered, user_rating,
       rating, votes, play_count, last_played, date_added,
@@ -44,6 +44,29 @@ describe('Cloudflare D1 read API', () => {
     expect(health.response.status).toBe(200);
     expect(health.body).toEqual({ status: 'ok' });
     expect(summary.body).toEqual({ movieCount: 2, tvShowCount: 1 });
+  });
+
+  it('reports stale snapshot metadata without interrupting public reads', async () => {
+    const status = await json('/api/sync/status');
+    const summary = await json('/api/library/summary');
+
+    expect(status.response.status).toBe(200);
+    expect(status.body).toEqual({
+      status: 'stale', stale: true,
+      lastSuccessAt: '2020-08-09T00:01:00Z', durationSeconds: 60,
+      movieCount: 2, tvShowCount: 1,
+    });
+    expect(summary.response.status).toBe(200);
+    expect(summary.body).toEqual({ movieCount: 2, tvShowCount: 1 });
+  });
+
+  it('reports when no snapshot has ever completed', async () => {
+    await env.DB.prepare('DELETE FROM sync_snapshots').run();
+    const status = await json('/api/sync/status');
+    expect(status.body).toEqual({
+      status: 'never_synced', stale: true, lastSuccessAt: null,
+      durationSeconds: null, movieCount: 0, tvShowCount: 0,
+    });
   });
 
   it('returns an empty library when no completed snapshot is active', async () => {

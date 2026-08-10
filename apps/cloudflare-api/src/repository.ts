@@ -12,6 +12,20 @@ const activeSnapshot = `(
 
 interface CountRow { totalItems: number }
 
+interface ActiveSnapshotRow {
+  createdAt: string;
+  completedAt: string;
+}
+
+export interface SyncStatus {
+  status: 'current' | 'stale' | 'never_synced';
+  stale: boolean;
+  lastSuccessAt: string | null;
+  durationSeconds: number | null;
+  movieCount: number;
+  tvShowCount: number;
+}
+
 interface MovieListRow {
   id: number;
   title: string;
@@ -59,6 +73,37 @@ export async function getSummary(db: D1Database) {
   return {
     movieCount: Number(movies.results[0]?.totalItems ?? 0),
     tvShowCount: Number(tvShows.results[0]?.totalItems ?? 0),
+  };
+}
+
+export async function getSyncStatus(
+  db: D1Database,
+  staleAfterSeconds: number,
+  now = Date.now(),
+): Promise<SyncStatus> {
+  const snapshot = await db.prepare(`SELECT
+    created_at AS createdAt, completed_at AS completedAt
+    FROM sync_snapshots
+    WHERE is_active = 1 AND completed_at IS NOT NULL
+    LIMIT 1`).first<ActiveSnapshotRow>();
+  if (!snapshot) {
+    return {
+      status: 'never_synced', stale: true, lastSuccessAt: null,
+      durationSeconds: null, movieCount: 0, tvShowCount: 0,
+    };
+  }
+  const counts = await getSummary(db);
+  const completedAt = Date.parse(snapshot.completedAt);
+  const createdAt = Date.parse(snapshot.createdAt);
+  const stale = !Number.isFinite(completedAt) || now - completedAt > staleAfterSeconds * 1000;
+  return {
+    status: stale ? 'stale' : 'current',
+    stale,
+    lastSuccessAt: snapshot.completedAt,
+    durationSeconds: Number.isFinite(createdAt) && Number.isFinite(completedAt)
+      ? Math.max(0, Math.round((completedAt - createdAt) / 1000))
+      : null,
+    ...counts,
   };
 }
 

@@ -23,6 +23,7 @@ describe('parseSyncEnvironment', () => {
     expect(result).toMatchObject({
       KODI_SYNC_BATCH_SIZE: 50,
       KODI_SYNC_MAX_RETRIES: 4,
+      KODI_SYNC_STATUS_FILE: '.kodi-sync-status.json',
       KODI_SYNC_DRY_RUN: false,
     });
   });

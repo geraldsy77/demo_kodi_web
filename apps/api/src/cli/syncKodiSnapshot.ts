@@ -6,6 +6,7 @@ import { createDatabasePool } from '../db/pool.js';
 import { createFileSnapshotStateStore } from '../services/snapshotState.js';
 import { synchronizeKodiSnapshot } from '../services/snapshotSyncService.js';
 import { createSnapshotUploader } from '../services/snapshotUploader.js';
+import { createFileSyncRunStatusStore, observeSyncRun } from '../services/syncRunStatus.js';
 
 async function main(): Promise<void> {
   const databaseConfig = parseEnvironment(process.env);
@@ -13,7 +14,7 @@ async function main(): Promise<void> {
   const syncConfig = parseSyncEnvironment(process.env);
   const pool = createDatabasePool(databaseConfig);
   try {
-    const result = await synchronizeKodiSnapshot({
+    const synchronize = () => synchronizeKodiSnapshot({
       pool,
       uploader: createSnapshotUploader({
         endpoint: syncConfig.KODI_SYNC_ENDPOINT,
@@ -24,6 +25,9 @@ async function main(): Promise<void> {
       batchSize: syncConfig.KODI_SYNC_BATCH_SIZE,
       dryRun: syncConfig.KODI_SYNC_DRY_RUN,
     });
+    const result = syncConfig.KODI_SYNC_DRY_RUN
+      ? await synchronize()
+      : await observeSyncRun(synchronize, createFileSyncRunStatusStore(syncConfig.KODI_SYNC_STATUS_FILE));
     console.log(JSON.stringify({
       message: result.dryRun ? 'KODI snapshot dry run completed.' : 'KODI snapshot synchronized.',
       movieCount: result.movieCount,
