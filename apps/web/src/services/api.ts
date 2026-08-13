@@ -333,3 +333,45 @@ export async function searchLibrary(
   }
   return body;
 }
+
+export interface SyncStatus {
+  status: 'current' | 'stale' | 'never_synced';
+  stale: boolean;
+  lastSuccessAt: string | null;
+  durationSeconds: number | null;
+  movieCount: number;
+  tvShowCount: number;
+}
+
+function isSyncStatus(value: unknown): value is SyncStatus {
+  if (typeof value !== 'object' || value === null) return false;
+  const status = value as Record<string, unknown>;
+  return (
+    ['current', 'stale', 'never_synced'].includes(String(status.status)) &&
+    typeof status.stale === 'boolean' &&
+    isNullableString(status.lastSuccessAt) &&
+    isNullableNumber(status.durationSeconds) &&
+    Number.isSafeInteger(status.movieCount) && Number(status.movieCount) >= 0 &&
+    Number.isSafeInteger(status.tvShowCount) && Number(status.tvShowCount) >= 0
+  );
+}
+
+export async function fetchSyncStatus(
+  signal?: AbortSignal,
+): Promise<SyncStatus> {
+  const response = await fetch('/api/sync/status', {
+    headers: { Accept: 'application/json' },
+    signal,
+  });
+  const body = await response.json() as unknown;
+
+  if (!response.ok) {
+    throw new ApiRequestError('Synchronization status could not be loaded.');
+  }
+  if (!isSyncStatus(body)) {
+    throw new ApiRequestError(
+      'Synchronization status returned an invalid response.',
+    );
+  }
+  return body;
+}

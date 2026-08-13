@@ -2,7 +2,12 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import { DashboardError, DashboardLoading } from '../components/DashboardState';
-import { fetchLibrarySummary, type LibrarySummary } from '../services/api';
+import {
+  fetchLibrarySummary,
+  fetchSyncStatus,
+  type LibrarySummary,
+  type SyncStatus,
+} from '../services/api';
 
 interface PlaceholderPageProps {
   title: string;
@@ -14,9 +19,20 @@ type DashboardStatus =
   | { state: 'error' }
   | { state: 'ready'; summary: LibrarySummary };
 
+function displaySyncTime(value: string): string {
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) return value;
+
+  return new Intl.DateTimeFormat(undefined, {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  }).format(date);
+}
 export function HomePage() {
   const [status, setStatus] = useState<DashboardStatus>({ state: 'loading' });
   const [requestKey, setRequestKey] = useState(0);
+  const [syncStatus, setSyncStatus] = useState<SyncStatus | null>(null);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -28,6 +44,15 @@ export function HomePage() {
         if (error instanceof DOMException && error.name === 'AbortError') return;
         setStatus({ state: 'error' });
       });
+
+    if (window.location.protocol === 'https:') {
+      void fetchSyncStatus(controller.signal)
+        .then(setSyncStatus)
+        .catch((error: unknown) => {
+          if (error instanceof DOMException && error.name === 'AbortError') return;
+          setSyncStatus(null);
+        });
+    }
 
     return () => controller.abort();
   }, [requestKey]);
@@ -43,6 +68,21 @@ export function HomePage() {
           A quiet overview of the movies and shows available on your network.
         </p>
       </header>
+
+      {syncStatus?.lastSuccessAt && (
+        <p
+          className={`sync-status${syncStatus.stale ? ' sync-status-stale' : ''}`}
+          role="status"
+        >
+          Last library update:{' '}
+          <time dateTime={syncStatus.lastSuccessAt}>
+            {displaySyncTime(syncStatus.lastSuccessAt)}
+          </time>
+          {syncStatus.stale && (
+            <span> · Data may be out of date</span>
+          )}
+        </p>
+      )}
 
       {status.state === 'loading' && <DashboardLoading />}
       {status.state === 'error' && <DashboardError onRetry={retry} />}

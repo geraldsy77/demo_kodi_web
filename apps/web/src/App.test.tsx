@@ -158,6 +158,7 @@ describe('home dashboard', () => {
     expect(fetch).toHaveBeenCalledWith('/api/library/summary', expect.objectContaining({
       headers: { Accept: 'application/json' },
     }));
+    expect(fetch).not.toHaveBeenCalledWith('/api/sync/status', expect.anything());
   });
 
   it('shows guidance when the library is empty', async () => {
@@ -379,6 +380,10 @@ describe('TV-show detail page', () => {
     expect(screen.getByText('45 min')).toBeTruthy();
     expect(screen.getByText('2,500 votes')).toBeTruthy();
     expect(screen.getByRole('progressbar').getAttribute('value')).toBe('25');
+    const poster = document.querySelector<HTMLImageElement>('.detail-poster .poster-image');
+    expect(poster?.src).toBe('https://images.example.test/show-poster.jpg');
+    fireEvent.error(poster as HTMLImageElement);
+    expect(screen.getByText('E')).toBeTruthy();
   });
 
   it('handles not-found and invalid show IDs', async () => {
