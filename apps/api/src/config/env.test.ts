@@ -12,7 +12,9 @@ describe('parseEnvironment', () => {
   it('validates database settings and uses safe defaults', () => {
     expect(parseEnvironment(requiredEnvironment)).toEqual({
       NODE_ENV: 'development',
+      API_HOST: '0.0.0.0',
       API_PORT: 3001,
+      WEB_DIST_PATH: undefined,
       KODI_DB_HOST: 'mariadb.internal',
       KODI_DB_PORT: 3306,
       KODI_DB_USER: 'kodi_web_readonly',
@@ -25,6 +27,19 @@ describe('parseEnvironment', () => {
     expect(() =>
       parseEnvironment({ ...requiredEnvironment, API_PORT: 'not-a-port' }),
     ).toThrow();
+  });
+
+  it('accepts native-hosting bind and web distribution settings', () => {
+    expect(parseEnvironment({
+      ...requiredEnvironment,
+      API_HOST: '127.0.0.1',
+      API_PORT: '8181',
+      WEB_DIST_PATH: '/volume1/web/kodi-web/apps/web/dist',
+    })).toMatchObject({
+      API_HOST: '127.0.0.1',
+      API_PORT: 8181,
+      WEB_DIST_PATH: '/volume1/web/kodi-web/apps/web/dist',
+    });
   });
 
   it('rejects missing database credentials', () => {

@@ -102,6 +102,16 @@ manual recovery, and Stage 1 rollback are documented in
 
 The frontend must depend only on the HTTP API contract, not Express implementation details. This makes it possible to replace the Express API with a Worker later.
 
+## Native DSM fallback
+
+The DS115j native pilot is a LAN-only fallback that combines the compiled React
+site and Stage 1 Express API in one Node.js 18 process. Express binds to
+`127.0.0.1:8181`; DSM's managed nginx reverse proxy owns the LAN-facing port.
+Builds occur on the supported development host, and the NAS receives compiled
+files plus production dependencies only. This mode does not replace or modify
+Cloudflare hosting or snapshot synchronization. See
+`docs/NATIVE_DSM_HOSTING.md`.
+
 ## Database safety
 
 Create a dedicated MariaDB account similar to:

@@ -11,8 +11,13 @@ import { createLibrarySummaryService } from './services/librarySummaryService.js
 import { createMovieService } from './services/movieService.js';
 import { createSearchService } from './services/searchService.js';
 import { createTvShowService } from './services/tvShowService.js';
+import { mountStaticWebApplication } from './web/staticWebApplication.js';
 
-export function createApp(pool: Pool): Express {
+interface AppOptions {
+  webDistPath?: string;
+}
+
+export function createApp(pool: Pool, options: AppOptions = {}): Express {
   const app = express();
 
   app.disable('x-powered-by');
@@ -25,6 +30,9 @@ export function createApp(pool: Pool): Express {
   app.use('/api/movies', createMovieRouter(createMovieService(pool)));
   app.use('/api/tvshows', createTvShowRouter(createTvShowService(pool)));
   app.use('/api/search', createSearchRouter(createSearchService(pool)));
+  if (options.webDistPath) {
+    mountStaticWebApplication(app, options.webDistPath);
+  }
   app.use(errorHandler);
 
   return app;

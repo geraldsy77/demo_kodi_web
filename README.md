@@ -28,6 +28,9 @@ snapshot online.
 The original Node/Express API and Docker Compose deployment remain available as
 the Stage 1 LAN fallback. The current Synology DS115j cannot run Container
 Manager, so Docker Desktop on the Windows LAN host is the selected local host.
+An experimental native DSM fallback can also run the prebuilt React site and
+Express API as one LAN-only Node.js 18 process; see
+[Native DSM hosting](docs/NATIVE_DSM_HOSTING.md).
 
 ## Repository layout
 
@@ -92,6 +95,15 @@ docker compose ps
 
 The local website is available at `http://localhost:8181`; the diagnostic API
 is published at `http://localhost:3001`.
+
+Create a compiled LAN-only release for the verified DS115j native runtime:
+
+```powershell
+npm.cmd run package:nas
+```
+
+This produces `dist-nas/kodi-web-nas-release.tar.gz`. Build tooling remains on
+the laptop; the NAS installs and runs production dependencies only.
 
 ## Public API
 

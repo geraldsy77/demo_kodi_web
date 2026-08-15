@@ -8,8 +8,10 @@ DS115j. Windows Docker Desktop is the current host; a supported Raspberry Pi
 or small x86-64 Linux host can replace it later without changing the API
 contract.
 
-Do not install an unofficial Docker daemon or run this application natively on
-the DS115j. Do not expose MariaDB port 3306 to the public Internet.
+Do not install an unofficial Docker daemon. A native Node.js 18 LAN-only pilot
+is permitted now that the exact runtime has been verified on the NAS, but it is
+not an Internet-facing production target and must be rolled back if its memory
+impact affects DSM, KODI, or MariaDB. Do not expose MariaDB port 3306.
 
 ## Verified target
 
@@ -47,7 +49,7 @@ identifies Update 9 for the `armada370` DS115j platform.
 | Option | Feasibility | Operations and upgrades | Security and resource tradeoffs |
 | --- | --- | --- | --- |
 | Legacy Docker package on DS115j | Rejected: no supported package for DSM 7.1.1/DS115j | Manual SPK modification would be fragile across DSM updates and has no supported rollback path | Docker is privileged; unofficial binaries increase supply-chain risk; 256 MB RAM is inadequate for two application containers |
-| Native Node.js on DS115j | Rejected for this application | Requires maintaining a compatible Node 22 runtime, dependencies, static server, startup, logs, and upgrades outside the tested container path | The old 32-bit platform is not a dependable current Node production target, and the application would compete with MariaDB in 256 MB RAM |
+| Native Node.js on DS115j | Experimental LAN-only fallback | Build on the laptop; deploy compiled output and production dependencies; use DSM startup and reverse proxy | Verified Node 18.18.2 is end-of-life and only about 62 MB was available before the pilot, so resource monitoring and immediate rollback remain mandatory |
 | Web/API containers on another LAN device | Selected | Uses the tested Compose images, health checks, restart policy, and normal image rebuild/rollback workflow | Requires another powered device, but isolates load from the NAS and permits a supported x86-64 or ARM64 runtime |
 
 ## Selected private-LAN topology

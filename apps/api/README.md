@@ -32,6 +32,11 @@ Run the API locally:
 npm run dev --workspace @kodi/api
 ```
 
+When `WEB_DIST_PATH` is configured, Express also serves the compiled React
+application and returns `index.html` for non-API deep links. `API_HOST` controls
+the bind address; the native DSM pilot binds to `127.0.0.1` behind DSM's reverse
+proxy. See [Native DSM hosting](../../docs/NATIVE_DSM_HOSTING.md).
+
 ## Database discovery
 
 KODI database names are versioned. With the private MariaDB connection values
