@@ -2,8 +2,9 @@
 
 This runbook hosts the compiled React site and read-only Express API as one
 Node.js process on the Synology DS115j. It is a LAN-only fallback deployment.
-The public Cloudflare deployment and the existing synchronization process are
-unchanged.
+The public Cloudflare deployment remains available, while the DS115j also owns
+the scheduled outbound D1 snapshot synchronization described in
+[`KODI_SYNC_OPERATIONS.md`](KODI_SYNC_OPERATIONS.md).
 
 ## Constraints
 
@@ -90,8 +91,10 @@ KODI_DB_PORT=3306
 ```
 
 Set the verified `KODI_VIDEO_DB` and dedicated SELECT-only database
-credentials. Do not add synchronization or Cloudflare secrets during this
-hosting pilot.
+credentials. If this NAS owns D1 synchronization, also configure the
+`KODI_SYNC_*` values documented in
+[`KODI_SYNC_OPERATIONS.md`](KODI_SYNC_OPERATIONS.md). Keep `.env` mode `600`
+because it then contains the Worker synchronization token.
 
 ## 5. Test in the foreground
 
