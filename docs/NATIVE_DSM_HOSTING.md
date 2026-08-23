@@ -130,8 +130,10 @@ checks the process command before sending `SIGTERM`:
 
 ## 7. Configure DSM reverse proxy
 
-Create a dedicated hostname in LAN DNS, for example
-`kodi-nas.home.arpa`, pointing to the NAS address. In DSM, go to:
+Create the simple hostname `kodi` in the ASUS router's local DNS/host settings
+and point it to the NAS address. ASUS stock firmware supports the simple
+hostname used by this deployment rather than a local domain-style hostname.
+In DSM, go to:
 
 ```text
 Control Panel > Login Portal > Advanced > Reverse Proxy > Create
@@ -142,9 +144,9 @@ Use:
 | Field | Value |
 | --- | --- |
 | Name | KODI Web LAN |
-| Source protocol | HTTP |
-| Source hostname | `kodi-nas.home.arpa` |
-| Source port | `80` |
+| Source protocol | HTTPS |
+| Source hostname | `kodi` |
+| Source port | `443` |
 | Destination protocol | HTTP |
 | Destination hostname | `127.0.0.1` |
 | Destination port | `8181` |
@@ -156,10 +158,15 @@ rules. Do not configure router port forwarding.
 Verify:
 
 ```text
-http://kodi-nas.home.arpa/
-http://kodi-nas.home.arpa/movies
-http://kodi-nas.home.arpa/api/health
+https://kodi/
+https://kodi/movies
+https://kodi/api/health
 ```
+
+The `kodi` hostname must resolve to the NAS on each LAN client. For the locally
+trusted HTTPS certificate and device trust instructions, follow
+[`SYNOLOGY_SSL_CERTIFICATE.md`](SYNOLOGY_SSL_CERTIFICATE.md). The certificate
+SAN must include `DNS:kodi` so it matches the URL clients use.
 
 ## 8. Start at boot
 
