@@ -46,7 +46,9 @@ describe('getTvShowPage', () => {
     });
 
     const listCall = execute.mock.calls[1];
-    expect(listCall?.[0]).toContain('ORDER BY c00 ASC, idShow ASC');
+    expect(listCall?.[0]).toContain(
+      'ORDER BY dateAdded IS NULL ASC, dateAdded DESC, c00 ASC, idShow ASC',
+    );
     expect(listCall?.[0]).not.toContain('SELECT *');
     expect(listCall?.[1]).toEqual([24, 24]);
   });

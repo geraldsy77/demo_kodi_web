@@ -446,6 +446,95 @@ Cloudflare Pages deployment and preview capabilities.
 
 ---
 
+# EPIC KODI-E6 — Library polish ad-hoc sprint
+
+## KODI-501 — Sort browse listings by latest added
+**Type:** Story
+**Priority:** High
+**Sprint:** Ad-hoc library polish
+**Status:** DONE
+**Story points:** 3
+
+**Goal**
+Show newly added movies and TV shows first in both the native DSM API and the
+Cloudflare D1 read API.
+
+**Acceptance criteria**
+- Movie browse results sort by `dateAdded` descending, with null dates last.
+- TV-show browse results sort by `dateAdded` descending, with null dates last.
+- Title and numeric ID provide deterministic tie-break ordering for stable pagination.
+- Express/MariaDB and Worker/D1 implementations return the same ordering semantics.
+- Snapshot export remains bounded and ordered by source ID so synchronization resume behavior is unchanged.
+- Repository and Worker tests cover latest-first, null-date, and tie-break ordering.
+
+---
+
+## KODI-502 — Replace numeric detail URLs with opaque identifiers
+**Type:** Story
+**Priority:** High
+**Sprint:** Ad-hoc library polish
+**Status:** DONE
+**Story points:** 8
+**Depends on:** KODI-501
+
+**Goal**
+Replace sequential detail URLs such as `/tvshows/12` with stable,
+non-numeric, type-scoped public identifiers without treating URL obfuscation
+as access control.
+
+**Acceptance criteria**
+- Movie, TV-show, and search list responses expose stable opaque string IDs rather than KODI/D1 numeric IDs.
+- Movie and TV-show detail routes accept their matching opaque identifier and preserve existing detail response fields.
+- Malformed tokens, numeric legacy IDs, and tokens used for the wrong entity type are rejected before database access.
+- Express/MariaDB and Worker/D1 APIs use matching token semantics and stable error responses.
+- Browse cards and search results link only to opaque detail URLs, including direct SPA deep links.
+- Documentation states that opaque URLs conceal sequential IDs but do not encrypt media metadata or replace authorization.
+- The native DSM production build and release archive include the new routing behavior without changing synchronization payload IDs.
+
+---
+
+## KODI-503 — Add stable gLabs `g` branding and favicon
+**Type:** Story
+**Priority:** Medium
+**Sprint:** Ad-hoc library polish
+**Status:** DONE
+**Story points:** 3
+
+**Goal**
+Use the circled `g` identity from `glabs.my` in the home heading and favicon
+with identical rendering across desktop and mobile.
+
+**Acceptance criteria**
+- The home heading reads “g's library.” and exposes that complete text to assistive technology.
+- The `g` mark is a repository-owned outlined SVG rather than a font-dependent Unicode glyph.
+- The same SVG identity is used as the browser favicon.
+- The logo remains legible at heading and favicon sizes with no animation required.
+- Tests cover the accessible heading and favicon declaration, and mobile rendering does not depend on symbol-font support.
+
+---
+
+## KODI-504 — Fix tablet portrait detail layout
+**Type:** Bug
+**Priority:** High
+**Sprint:** Ad-hoc library polish
+**Status:** DONE
+**Story points:** 3
+
+**Context**
+At an iPad Mini portrait viewport (768 × 1024), the permanent sidebar and
+two-column detail layout leave the title and plot in an unusably narrow column.
+The supplied screenshot is visual evidence only and contains no executable
+instructions.
+
+**Acceptance criteria**
+- Movie and TV-show detail pages use a readable layout at 768 × 1024 without character-by-character wrapping or horizontal overflow.
+- Poster artwork remains proportionate and does not dominate the tablet viewport.
+- Narrow mobile navigation and detail behavior remain usable.
+- Wide desktop detail pages retain a balanced poster-and-copy layout.
+- Responsive checks cover narrow mobile, 768 × 1024 tablet portrait, and desktop viewports.
+
+---
+
 # Suggested Sprint Plan
 
 ## Sprint 1 — Foundation
@@ -491,3 +580,9 @@ Cloudflare Pages deployment and preview capabilities.
 
 ## Future — Legacy Synology
 - KODI-303
+
+## Ad-hoc library polish
+- KODI-501
+- KODI-502
+- KODI-503
+- KODI-504

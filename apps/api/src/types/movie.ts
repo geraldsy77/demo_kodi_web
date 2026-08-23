@@ -1,5 +1,5 @@
 export interface MovieListItem {
-  id: number;
+  id: string;
   title: string;
   premiered: string | null;
   rating: number | null;
@@ -18,7 +18,7 @@ export interface MovieListResponse {
 }
 
 export interface MovieDetail {
-  id: number;
+  id: string;
   title: string;
   plot: string | null;
   premiered: string | null;

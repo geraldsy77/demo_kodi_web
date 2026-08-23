@@ -7,6 +7,7 @@ import {
 } from '../repositories/tvShowRepository.js';
 import type { PaginationQuery } from '../types/pagination.js';
 import type { TvShowDetail, TvShowListResponse } from '../types/tvShow.js';
+import { encodePublicId } from '../types/publicId.js';
 
 export interface TvShowService {
   listTvShows(pagination: PaginationQuery): Promise<TvShowListResponse>;
@@ -22,7 +23,10 @@ export function createTvShowService(pool: Pool): TvShowService {
       });
 
       return {
-        items: result.items,
+        items: result.items.map((tvShow) => ({
+          ...tvShow,
+          id: encodePublicId('tvshow', tvShow.id),
+        })),
         pagination: {
           page,
           pageSize,
@@ -37,7 +41,7 @@ export function createTvShowService(pool: Pool): TvShowService {
         throw new ApiError(404, 'TV_SHOW_NOT_FOUND', 'TV show not found.');
       }
 
-      return tvShow;
+      return { ...tvShow, id: encodePublicId('tvshow', tvShow.id) };
     },
   };
 }

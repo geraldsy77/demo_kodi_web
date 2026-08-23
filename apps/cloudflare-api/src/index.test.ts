@@ -1,6 +1,14 @@
 import { env, SELF } from 'cloudflare:test';
 import { beforeEach, describe, expect, it } from 'vitest';
 
+import { encodePublicId } from './publicId';
+
+const movie7 = encodePublicId('movie', 7);
+const movie8 = encodePublicId('movie', 8);
+const movie999 = encodePublicId('movie', 999);
+const tvShow12 = encodePublicId('tvshow', 12);
+const tvShow999 = encodePublicId('tvshow', 999);
+
 async function json(path: string, init?: RequestInit) {
   const response = await SELF.fetch(`https://example.test${path}`, init);
   return { response, body: await response.json() };
@@ -82,29 +90,57 @@ describe('Cloudflare D1 read API', () => {
     });
   });
 
-  it('paginates movies using deterministic title ordering', async () => {
+  it('paginates movies using deterministic latest-added ordering', async () => {
     const { response, body } = await json('/api/movies?page=2&pageSize=1');
 
     expect(response.status).toBe(200);
     expect(body).toEqual({
       items: [{
-        id: 7,
-        title: 'Example Movie',
-        premiered: '2025-01-01',
-        rating: 7.5,
-        playCount: 1,
-        artworkUrl: 'https://images.example.test/movie.jpg',
+        id: movie8,
+        title: 'Another Movie',
+        premiered: null,
+        rating: null,
+        playCount: null,
+        artworkUrl: null,
       }],
       pagination: { page: 2, pageSize: 1, totalItems: 2, totalPages: 2 },
     });
   });
 
+  it('sorts browse results newest first, null last, then title and ID', async () => {
+    await env.DB.batch([
+      env.DB.prepare(`INSERT INTO movies (
+        snapshot_id, id, title, search_title, date_added
+      ) VALUES ('snapshot-1', 9, 'Zulu', 'zulu', '2026-01-01 10:00:00')`),
+      env.DB.prepare(`INSERT INTO movies (
+        snapshot_id, id, title, search_title, date_added
+      ) VALUES ('snapshot-1', 10, 'Alpha', 'alpha', '2026-01-01 10:00:00')`),
+      env.DB.prepare(`INSERT INTO movies (
+        snapshot_id, id, title, search_title, date_added
+      ) VALUES ('snapshot-1', 11, 'Alpha', 'alpha', '2026-01-01 10:00:00')`),
+      env.DB.prepare(`INSERT INTO tv_shows (
+        snapshot_id, id, title, search_title, date_added
+      ) VALUES ('snapshot-1', 13, 'Older Show', 'older show', NULL)`),
+      env.DB.prepare(`INSERT INTO tv_shows (
+        snapshot_id, id, title, search_title, date_added
+      ) VALUES ('snapshot-1', 14, 'Newest Show', 'newest show', '2026-02-01 08:00:00')`),
+    ]);
+
+    const movies = await json('/api/movies?pageSize=10');
+    const tvShows = await json('/api/tvshows?pageSize=10');
+
+    expect((movies.body as { items: Array<{ id: string }> }).items.map(({ id }) => id))
+      .toEqual([10, 11, 9, 7, 8].map((id) => encodePublicId('movie', id)));
+    expect((tvShows.body as { items: Array<{ id: string }> }).items.map(({ id }) => id))
+      .toEqual([14, 12, 13].map((id) => encodePublicId('tvshow', id)));
+  });
+
   it('returns movie detail with resume metadata', async () => {
-    const { response, body } = await json('/api/movies/7');
+    const { response, body } = await json(`/api/movies/${movie7}`);
 
     expect(response.status).toBe(200);
     expect(body).toEqual({
-      id: 7,
+      id: movie7,
       title: 'Example Movie',
       plot: 'A plot',
       premiered: '2025-01-01',
@@ -121,11 +157,11 @@ describe('Cloudflare D1 read API', () => {
 
   it('returns TV-show browse and detail contracts', async () => {
     const list = await json('/api/tvshows');
-    const detail = await json('/api/tvshows/12');
+    const detail = await json(`/api/tvshows/${tvShow12}`);
 
     expect(list.body).toEqual({
       items: [{
-        id: 12,
+        id: tvShow12,
         title: 'Example Show',
         premiered: '2020-01-01',
         rating: 8.2,
@@ -137,7 +173,7 @@ describe('Cloudflare D1 read API', () => {
       pagination: { page: 1, pageSize: 24, totalItems: 1, totalPages: 1 },
     });
     expect(detail.body).toEqual({
-      id: 12,
+      id: tvShow12,
       title: 'Example Show',
       plot: 'Show plot',
       premiered: '2020-01-01',
@@ -159,18 +195,20 @@ describe('Cloudflare D1 read API', () => {
 
     expect(body).toEqual({
       items: [
-        { id: 7, title: 'Example Movie', entityType: 'movie' },
-        { id: 12, title: 'Example Show', entityType: 'tvshow' },
+        { id: movie7, title: 'Example Movie', entityType: 'movie' },
+        { id: tvShow12, title: 'Example Show', entityType: 'tvshow' },
       ],
       pagination: { page: 1, pageSize: 10, totalItems: 2, totalPages: 1 },
     });
   });
 
   it.each([
-    ['/api/movies/999', 404, 'MOVIE_NOT_FOUND'],
-    ['/api/tvshows/999', 404, 'TV_SHOW_NOT_FOUND'],
+    [`/api/movies/${movie999}`, 404, 'MOVIE_NOT_FOUND'],
+    [`/api/tvshows/${tvShow999}`, 404, 'TV_SHOW_NOT_FOUND'],
     ['/api/movies/0', 400, 'INVALID_ID'],
     ['/api/tvshows/nope', 400, 'INVALID_ID'],
+    [`/api/movies/${tvShow12}`, 400, 'INVALID_ID'],
+    [`/api/tvshows/${movie7}`, 400, 'INVALID_ID'],
   ])('returns stable detail errors for %s', async (path, status, code) => {
     const result = await json(path);
     expect(result.response.status).toBe(status);

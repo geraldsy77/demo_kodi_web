@@ -1,5 +1,5 @@
 export interface TvShowListItem {
-  id: number;
+  id: string;
   title: string;
   premiered: string | null;
   rating: number | null;

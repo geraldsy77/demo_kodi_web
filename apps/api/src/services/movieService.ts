@@ -4,6 +4,7 @@ import { ApiError } from '../middleware/apiError.js';
 import { getMovieById, getMoviePage } from '../repositories/movieRepository.js';
 import type { MovieDetail, MovieListResponse } from '../types/movie.js';
 import type { PaginationQuery } from '../types/pagination.js';
+import { encodePublicId } from '../types/publicId.js';
 
 export interface MovieService {
   listMovies(pagination: PaginationQuery): Promise<MovieListResponse>;
@@ -19,7 +20,10 @@ export function createMovieService(pool: Pool): MovieService {
       });
 
       return {
-        items: result.items,
+        items: result.items.map((movie) => ({
+          ...movie,
+          id: encodePublicId('movie', movie.id),
+        })),
         pagination: {
           page,
           pageSize,
@@ -34,7 +38,7 @@ export function createMovieService(pool: Pool): MovieService {
         throw new ApiError(404, 'MOVIE_NOT_FOUND', 'Movie not found.');
       }
 
-      return movie;
+      return { ...movie, id: encodePublicId('movie', movie.id) };
     },
   };
 }

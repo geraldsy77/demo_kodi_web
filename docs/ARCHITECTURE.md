@@ -102,6 +102,19 @@ manual recovery, and Stage 1 rollback are documented in
 
 The frontend must depend only on the HTTP API contract, not Express implementation details. This makes it possible to replace the Express API with a Worker later.
 
+### Public media identifiers
+
+Movie and TV-show IDs in public list, search, and detail responses are stable,
+type-scoped opaque strings. Express and the Cloudflare Worker decode those
+strings to the numeric IDs used internally by MariaDB and D1. A movie token is
+not valid on a TV-show route (or the reverse), and malformed or legacy numeric
+route values are rejected before database access.
+
+The encoding conceals sequential database keys in browser URLs; it is
+obfuscation, not encryption, authentication, or authorization. Snapshot export
+and D1 storage retain numeric IDs so the synchronization protocol and database
+relationships do not change.
+
 ## Native DSM fallback
 
 The DS115j native pilot is a LAN-only fallback that combines the compiled React

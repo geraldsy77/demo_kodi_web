@@ -4,7 +4,7 @@ export interface LibrarySummary {
 }
 
 export interface MovieListItem {
-  id: number;
+  id: string;
   title: string;
   premiered: string | null;
   rating: number | null;
@@ -35,7 +35,7 @@ export interface MovieDetail extends MovieListItem {
 }
 
 export interface TvShowListItem {
-  id: number;
+  id: string;
   title: string;
   premiered: string | null;
   rating: number | null;
@@ -60,7 +60,7 @@ export interface TvShowDetail extends TvShowListItem {
 }
 
 export interface SearchResultItem {
-  id: number;
+  id: string;
   title: string;
   entityType: 'movie' | 'tvshow';
 }
@@ -106,7 +106,7 @@ function isMovieListResponse(value: unknown): value is MovieListResponse {
     response.items.every((item: unknown) => {
       if (typeof item !== 'object' || item === null) return false;
       const movie = item as Record<string, unknown>;
-      return Number.isSafeInteger(movie.id) && Number(movie.id) > 0 &&
+      return typeof movie.id === 'string' && movie.id.length > 0 &&
         typeof movie.title === 'string' &&
         (movie.premiered === null || typeof movie.premiered === 'string') &&
         isNullableNumber(movie.rating) && isNullableNumber(movie.playCount) &&
@@ -128,7 +128,7 @@ function isMovieDetail(value: unknown): value is MovieDetail {
 
   const movie = value as Record<string, unknown>;
   const resume = movie.resume as Record<string, unknown> | null;
-  return Number.isSafeInteger(movie.id) && Number(movie.id) > 0 &&
+  return typeof movie.id === 'string' && movie.id.length > 0 &&
     typeof movie.title === 'string' &&
     isNullableString(movie.plot) &&
     isNullableString(movie.premiered) &&
@@ -148,7 +148,7 @@ function isMovieDetail(value: unknown): value is MovieDetail {
 function isTvShowItem(value: unknown): value is TvShowListItem {
   if (typeof value !== 'object' || value === null) return false;
   const show = value as Record<string, unknown>;
-  return Number.isSafeInteger(show.id) && Number(show.id) > 0 &&
+  return typeof show.id === 'string' && show.id.length > 0 &&
     typeof show.title === 'string' && isNullableString(show.premiered) &&
     isNullableNumber(show.rating) && isNullableNumber(show.totalEpisodes) &&
     isNullableNumber(show.watchedEpisodes) && isNullableNumber(show.totalSeasons) &&
@@ -185,7 +185,7 @@ function isSearchResponse(value: unknown): value is SearchResponse {
   return Array.isArray(response.items) && response.items.every((item: unknown) => {
     if (typeof item !== 'object' || item === null) return false;
     const result = item as Record<string, unknown>;
-    return Number.isSafeInteger(result.id) && Number(result.id) > 0 &&
+    return typeof result.id === 'string' && result.id.length > 0 &&
       typeof result.title === 'string' &&
       (result.entityType === 'movie' || result.entityType === 'tvshow');
   }) && hasValidPagination(response.pagination);
@@ -240,10 +240,10 @@ export async function fetchMovies(
 }
 
 export async function fetchMovie(
-  movieId: number,
+  movieId: string,
   signal?: AbortSignal,
 ): Promise<MovieDetail> {
-  const response = await fetch(`/api/movies/${movieId}`, {
+  const response = await fetch(`/api/movies/${encodeURIComponent(movieId)}`, {
     headers: { Accept: 'application/json' },
     signal,
   });
@@ -287,10 +287,10 @@ export async function fetchTvShows(
 }
 
 export async function fetchTvShow(
-  showId: number,
+  showId: string,
   signal?: AbortSignal,
 ): Promise<TvShowDetail> {
-  const response = await fetch(`/api/tvshows/${showId}`, {
+  const response = await fetch(`/api/tvshows/${encodeURIComponent(showId)}`, {
     headers: { Accept: 'application/json' }, signal,
   });
   const body = await response.json() as unknown;

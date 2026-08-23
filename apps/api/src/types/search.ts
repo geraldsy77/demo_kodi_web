@@ -9,7 +9,7 @@ export const searchQuerySchema = paginationQuerySchema.extend({
 export type SearchQuery = z.infer<typeof searchQuerySchema>;
 
 export interface SearchResultItem {
-  id: number;
+  id: string;
   title: string;
   entityType: 'movie' | 'tvshow';
 }

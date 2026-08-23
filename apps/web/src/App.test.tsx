@@ -7,6 +7,13 @@ import { createMemoryRouter, MemoryRouter, RouterProvider } from 'react-router-d
 import { appRoutes } from './App';
 import { ErrorState, RouteLoading } from './components/RouteState';
 
+const movieId = 'QabcDEF1234';
+const secondMovieId = 'QabcDEF5678';
+const unknownMovieId = 'QabcDEF9999';
+const tvShowId = 'wabcDEF1234';
+const secondTvShowId = 'wabcDEF5678';
+const unknownTvShowId = 'wabcDEF9999';
+
 afterEach(cleanup);
 
 function apiResponse(body: unknown, ok = true, status = ok ? 200 : 500): Response {
@@ -20,13 +27,13 @@ beforeEach(() => {
       if (input.startsWith('/api/movies?')) {
         return Promise.resolve(apiResponse(moviePage()));
       }
-      if (/^\/api\/movies\/\d+$/.test(input)) {
+      if (/^\/api\/movies\/[A-Za-z1-9]{11,}$/.test(input)) {
         return Promise.resolve(apiResponse(movieDetail()));
       }
       if (input.startsWith('/api/tvshows?')) {
         return Promise.resolve(apiResponse(tvShowPage()));
       }
-      if (/^\/api\/tvshows\/\d+$/.test(input)) {
+      if (/^\/api\/tvshows\/[A-Za-z1-9]{11,}$/.test(input)) {
         return Promise.resolve(apiResponse(tvShowDetail()));
       }
       if (input.startsWith('/api/search?')) {
@@ -47,7 +54,7 @@ function renderRoute(path: string) {
 
 function moviePage(items = [
   {
-    id: 7,
+    id: movieId,
     title: 'Example Movie',
     premiered: '2025-01-01',
     rating: 7.5,
@@ -68,7 +75,7 @@ function moviePage(items = [
 
 function movieDetail() {
   return {
-    id: 7,
+    id: movieId,
     title: 'Example Movie',
     artworkUrl: 'https://images.example.test/movie-poster.jpg',
     plot: 'A thoughtful example plot.',
@@ -85,7 +92,7 @@ function movieDetail() {
 
 function tvShowPage() {
   return {
-    items: [{ id: 12, title: 'Example Show', premiered: '2020-01-01', rating: 8.2, totalEpisodes: 20, watchedEpisodes: 5, totalSeasons: 2, artworkUrl: 'https://images.example.test/show-poster.jpg' }],
+    items: [{ id: tvShowId, title: 'Example Show', premiered: '2020-01-01', rating: 8.2, totalEpisodes: 20, watchedEpisodes: 5, totalSeasons: 2, artworkUrl: 'https://images.example.test/show-poster.jpg' }],
     pagination: { page: 1, pageSize: 24, totalItems: 25, totalPages: 2 },
   };
 }
@@ -105,8 +112,8 @@ function tvShowDetail() {
 function searchPage() {
   return {
     items: [
-      { id: 7, title: 'Example Movie', entityType: 'movie' },
-      { id: 12, title: 'Example Show', entityType: 'tvshow' },
+      { id: movieId, title: 'Example Movie', entityType: 'movie' },
+      { id: tvShowId, title: 'Example Show', entityType: 'tvshow' },
     ],
     pagination: { page: 1, pageSize: 24, totalItems: 26, totalPages: 2 },
   };
@@ -114,7 +121,7 @@ function searchPage() {
 
 describe('application shell', () => {
   it.each([
-    ['/', 'Your library.'],
+    ['/', "g's library."],
     ['/movies', 'Movies'],
     ['/tvshows', 'TV Shows'],
     ['/search', 'Search'],
@@ -202,7 +209,7 @@ describe('movie browse page', () => {
     const movieLink = await screen.findByRole('link', {
       name: 'View Example Movie',
     });
-    expect(movieLink.getAttribute('href')).toBe('/movies/7');
+    expect(movieLink.getAttribute('href')).toBe(`/movies/${movieId}`);
     expect(screen.getByText('2025')).toBeTruthy();
     expect(screen.getByText('★ 7.5')).toBeTruthy();
     expect(screen.getByText('Watched')).toBeTruthy();
@@ -225,7 +232,7 @@ describe('movie browse page', () => {
       .mockResolvedValueOnce(apiResponse({
         ...moviePage(),
         items: [{
-          id: 8,
+          id: secondMovieId,
           title: 'Second Page Movie',
           premiered: null,
           rating: null,
@@ -272,7 +279,7 @@ describe('movie browse page', () => {
 
 describe('movie detail page', () => {
   it('shows loading then verified movie metadata and resume progress', async () => {
-    renderRoute('/movies/7');
+    renderRoute(`/movies/${movieId}`);
 
     expect(screen.getByLabelText('Loading movie details')).toBeTruthy();
     expect(await screen.findByRole('heading', { name: 'Example Movie' }))
@@ -287,14 +294,14 @@ describe('movie detail page', () => {
     expect(screen.getByText('E')).toBeTruthy();
     expect(screen.getByText('30m of 2h 0m')).toBeTruthy();
     expect(screen.getByRole('progressbar').getAttribute('value')).toBe('25');
-    expect(fetch).toHaveBeenCalledWith('/api/movies/7', expect.any(Object));
+    expect(fetch).toHaveBeenCalledWith(`/api/movies/${movieId}`, expect.any(Object));
   });
 
   it('shows the API not-found state', async () => {
     vi.mocked(fetch).mockResolvedValueOnce(apiResponse({
       error: { code: 'MOVIE_NOT_FOUND', message: 'Movie not found.' },
     }, false, 404));
-    renderRoute('/movies/999');
+    renderRoute(`/movies/${unknownMovieId}`);
 
     expect(await screen.findByText('This movie isn’t available.')).toBeTruthy();
     expect(screen.getByRole('link', { name: 'Back to movies' })).toBeTruthy();
@@ -311,7 +318,7 @@ describe('movie detail page', () => {
     vi.mocked(fetch)
       .mockRejectedValueOnce(new Error('network unavailable'))
       .mockResolvedValueOnce(apiResponse(movieDetail()));
-    renderRoute('/movies/7');
+    renderRoute(`/movies/${movieId}`);
 
     fireEvent.click(await screen.findByRole('button', { name: 'Try again' }));
 
@@ -321,8 +328,8 @@ describe('movie detail page', () => {
   });
 
   it('rejects an invalid successful detail response', async () => {
-    vi.mocked(fetch).mockResolvedValueOnce(apiResponse({ id: 7, title: null }));
-    renderRoute('/movies/7');
+    vi.mocked(fetch).mockResolvedValueOnce(apiResponse({ id: movieId, title: null }));
+    renderRoute(`/movies/${movieId}`);
 
     expect(await screen.findByText('Movie details couldn’t be loaded.'))
       .toBeTruthy();
@@ -334,7 +341,7 @@ describe('TV-show browse page', () => {
     renderRoute('/tvshows');
     expect(screen.getByLabelText('Loading TV shows')).toBeTruthy();
     const show = await screen.findByRole('link', { name: 'View Example Show' });
-    expect(show.getAttribute('href')).toBe('/tvshows/12');
+    expect(show.getAttribute('href')).toBe(`/tvshows/${tvShowId}`);
     expect(screen.getByText('2 seasons')).toBeTruthy();
     expect(screen.getByText('5 / 20 episodes')).toBeTruthy();
     fireEvent.click(show);
@@ -346,7 +353,7 @@ describe('TV-show browse page', () => {
       .mockResolvedValueOnce(apiResponse(tvShowPage()))
       .mockResolvedValueOnce(apiResponse({
         ...tvShowPage(),
-        items: [{ ...tvShowPage().items[0], id: 13, title: 'Next Show' }],
+        items: [{ ...tvShowPage().items[0], id: secondTvShowId, title: 'Next Show' }],
         pagination: { ...tvShowPage().pagination, page: 2 },
       }));
     renderRoute('/tvshows');
@@ -372,7 +379,7 @@ describe('TV-show browse page', () => {
 
 describe('TV-show detail page', () => {
   it('renders verified detail metadata and episode progress', async () => {
-    renderRoute('/tvshows/12');
+    renderRoute(`/tvshows/${tvShowId}`);
     expect(screen.getByLabelText('Loading TV-show details')).toBeTruthy();
     expect(await screen.findByRole('heading', { name: 'Example Show' })).toBeTruthy();
     expect(screen.getByText('A thoughtful show plot.')).toBeTruthy();
@@ -388,7 +395,7 @@ describe('TV-show detail page', () => {
 
   it('handles not-found and invalid show IDs', async () => {
     vi.mocked(fetch).mockResolvedValueOnce(apiResponse({ error: { message: 'TV show not found.' } }, false, 404));
-    renderRoute('/tvshows/999');
+    renderRoute(`/tvshows/${unknownTvShowId}`);
     expect(await screen.findByText('This show isn’t available.')).toBeTruthy();
     cleanup();
     vi.mocked(fetch).mockClear();
@@ -399,7 +406,7 @@ describe('TV-show detail page', () => {
 
   it('retries a failed TV-show detail request', async () => {
     vi.mocked(fetch).mockRejectedValueOnce(new Error('offline')).mockResolvedValueOnce(apiResponse(tvShowDetail()));
-    renderRoute('/tvshows/12');
+    renderRoute(`/tvshows/${tvShowId}`);
     fireEvent.click(await screen.findByRole('button', { name: 'Try again' }));
     expect(await screen.findByRole('heading', { name: 'Example Show' })).toBeTruthy();
   });
@@ -424,8 +431,8 @@ describe('search page', () => {
     expect(screen.getByLabelText('Searching library')).toBeTruthy();
     const movie = await screen.findByRole('link', { name: /Example Movie/ });
     const show = screen.getByRole('link', { name: /Example Show/ });
-    expect(movie.getAttribute('href')).toBe('/movies/7');
-    expect(show.getAttribute('href')).toBe('/tvshows/12');
+    expect(movie.getAttribute('href')).toBe(`/movies/${movieId}`);
+    expect(show.getAttribute('href')).toBe(`/tvshows/${tvShowId}`);
     expect(screen.getByText('Movie')).toBeTruthy();
     expect(screen.getByText('TV Show')).toBeTruthy();
     expect(fetch).toHaveBeenCalledWith(
@@ -439,7 +446,7 @@ describe('search page', () => {
       .mockResolvedValueOnce(apiResponse(searchPage()))
       .mockResolvedValueOnce(apiResponse({
         ...searchPage(),
-        items: [{ id: 8, title: 'Another Example', entityType: 'movie' }],
+        items: [{ id: secondMovieId, title: 'Another Example', entityType: 'movie' }],
         pagination: { ...searchPage().pagination, page: 2 },
       }));
     renderRoute('/search?q=Example');

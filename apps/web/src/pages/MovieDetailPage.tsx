@@ -14,10 +14,8 @@ type DetailStatus =
   | { state: 'error' }
   | { state: 'ready'; movie: MovieDetail };
 
-function movieIdFromRoute(value: string | undefined): number | null {
-  if (!value || !/^[1-9]\d*$/.test(value)) return null;
-  const id = Number(value);
-  return Number.isSafeInteger(id) ? id : null;
+function movieIdFromRoute(value: string | undefined): string | null {
+  return value && /^[A-Za-z1-9]{11,}$/.test(value) ? value : null;
 }
 
 function displayDate(value: string | null): string | null {

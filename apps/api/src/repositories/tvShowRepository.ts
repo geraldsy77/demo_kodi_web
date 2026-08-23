@@ -32,8 +32,11 @@ interface TvShowPageOptions {
   offset: number;
 }
 
+export type TvShowListRecord = Omit<TvShowListItem, 'id'> & { id: number };
+export type TvShowDetailRecord = Omit<TvShowDetail, 'id'> & { id: number };
+
 export interface TvShowPageResult {
-  items: TvShowListItem[];
+  items: TvShowListRecord[];
   totalItems: number;
 }
 
@@ -59,7 +62,7 @@ export async function getTvShowPage(
        totalSeasons
        ,(SELECT url FROM art WHERE media_id = idShow AND media_type = 'tvshow' AND type = 'poster' ORDER BY art_id ASC LIMIT 1) AS artworkUrl
      FROM tvshow_view
-     ORDER BY c00 ASC, idShow ASC
+     ORDER BY dateAdded IS NULL ASC, dateAdded DESC, c00 ASC, idShow ASC
      LIMIT ? OFFSET ?`,
     [options.limit, options.offset],
   );
@@ -82,7 +85,7 @@ export async function getTvShowPage(
 export async function getTvShowById(
   pool: Pool,
   tvShowId: number,
-): Promise<TvShowDetail | null> {
+): Promise<TvShowDetailRecord | null> {
   const [rows] = await pool.execute<TvShowDetailRow[]>(
     `SELECT
        idShow AS id,

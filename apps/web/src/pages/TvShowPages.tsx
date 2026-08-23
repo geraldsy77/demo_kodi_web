@@ -23,6 +23,10 @@ function positiveInteger(value: string | null | undefined): number | null {
   return Number.isSafeInteger(number) ? number : null;
 }
 
+function publicId(value: string | undefined): string | null {
+  return value && /^[A-Za-z1-9]{11,}$/.test(value) ? value : null;
+}
+
 export function TvShowBrowsePage() {
   const [parameters, setParameters] = useSearchParams();
   const page = positiveInteger(parameters.get('page')) ?? 1;
@@ -60,7 +64,7 @@ export function TvShowBrowsePage() {
 }
 
 export function TvShowDetailPage() {
-  const showId = positiveInteger(useParams().id);
+  const showId = publicId(useParams().id);
   const [status, setStatus] = useState<DetailStatus>(showId ? { state: 'loading' } : { state: 'notFound' });
   const [requestKey, setRequestKey] = useState(0);
   useEffect(() => {

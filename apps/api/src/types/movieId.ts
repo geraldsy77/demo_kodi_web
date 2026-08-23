@@ -1,7 +1,14 @@
 import { z } from 'zod';
 
+import { decodePublicId } from './publicId.js';
+
 export const movieIdSchema = z
   .string()
-  .regex(/^[1-9]\d*$/)
-  .transform(Number)
-  .pipe(z.number().int().safe().positive());
+  .transform((value, context) => {
+    const id = decodePublicId('movie', value);
+    if (id === null) {
+      context.addIssue({ code: 'custom', message: 'Invalid movie ID.' });
+      return z.NEVER;
+    }
+    return id;
+  });

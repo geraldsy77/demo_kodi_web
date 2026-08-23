@@ -36,8 +36,11 @@ interface MoviePageOptions {
   offset: number;
 }
 
+export type MovieListRecord = Omit<MovieListItem, 'id'> & { id: number };
+export type MovieDetailRecord = Omit<MovieDetail, 'id'> & { id: number };
+
 export interface MoviePageResult {
-  items: MovieListItem[];
+  items: MovieListRecord[];
   totalItems: number;
 }
 
@@ -57,7 +60,7 @@ export async function getMoviePage(
        playCount
        ,(SELECT url FROM art WHERE media_id = idMovie AND media_type = 'movie' AND type = 'poster' ORDER BY art_id ASC LIMIT 1) AS artworkUrl
      FROM movie_view
-     ORDER BY c00 ASC, idMovie ASC
+     ORDER BY dateAdded IS NULL ASC, dateAdded DESC, c00 ASC, idMovie ASC
      LIMIT ? OFFSET ?`,
     [options.limit, options.offset],
   );
@@ -78,7 +81,7 @@ export async function getMoviePage(
 export async function getMovieById(
   pool: Pool,
   movieId: number,
-): Promise<MovieDetail | null> {
+): Promise<MovieDetailRecord | null> {
   const [rows] = await pool.execute<MovieDetailRow[]>(
     `SELECT
        idMovie AS id,

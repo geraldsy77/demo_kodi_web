@@ -1,6 +1,8 @@
 import { env, SELF } from 'cloudflare:test';
 import { beforeEach, describe, expect, it } from 'vitest';
 
+import { encodePublicId } from './publicId';
+
 const endpoint = 'https://example.test/api/internal/sync/snapshots';
 
 function movie(id: number, title = `Movie ${id}`) {
@@ -148,7 +150,7 @@ describe('secure snapshot ingestion', () => {
     expect(complete.body).toMatchObject({ status: 'completed', duplicate: false });
     expect(completeRetry.body).toMatchObject({ status: 'completed', duplicate: true });
     expect(await movies.json()).toMatchObject({
-      items: [{ id: 2, title: 'Updated' }],
+      items: [{ id: encodePublicId('movie', 2), title: 'Updated' }],
       pagination: { totalItems: 1 },
     });
     expect(oldSnapshot?.total).toBe(0);

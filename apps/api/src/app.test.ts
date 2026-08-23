@@ -3,6 +3,13 @@ import type { Pool } from 'mysql2/promise';
 import { describe, expect, it, vi } from 'vitest';
 
 import { createApp } from './app.js';
+import { encodePublicId } from './types/publicId.js';
+
+const movie7 = encodePublicId('movie', 7);
+const movie11 = encodePublicId('movie', 11);
+const movie999 = encodePublicId('movie', 999);
+const tvShow7 = encodePublicId('tvshow', 7);
+const tvShow999 = encodePublicId('tvshow', 999);
 
 describe('GET /api/health', () => {
   it('returns a successful JSON health response', async () => {
@@ -73,7 +80,7 @@ describe('GET /api/movies', () => {
     expect(response.body).toEqual({
       items: [
         {
-          id: 11,
+          id: movie11,
           title: 'A Movie',
           premiered: '2024-01-01',
           rating: 8,
@@ -139,11 +146,11 @@ describe('GET /api/movies/:id', () => {
     ]);
     const response = await request(
       createApp({ execute } as unknown as Pool),
-    ).get('/api/movies/7');
+    ).get(`/api/movies/${movie7}`);
 
     expect(response.status).toBe(200);
     expect(response.body).toEqual({
-      id: 7,
+      id: movie7,
       title: 'Example',
       plot: 'Plot',
       premiered: '2025-01-01',
@@ -163,7 +170,7 @@ describe('GET /api/movies/:id', () => {
     const execute = vi.fn().mockResolvedValue([[], []]);
     const response = await request(
       createApp({ execute } as unknown as Pool),
-    ).get('/api/movies/999');
+    ).get(`/api/movies/${movie999}`);
 
     expect(response.status).toBe(404);
     expect(response.body).toEqual({
@@ -171,7 +178,12 @@ describe('GET /api/movies/:id', () => {
     });
   });
 
-  it.each(['/api/movies/0', '/api/movies/-1', '/api/movies/1.5', '/api/movies/abc'])(
+  it.each([
+    '/api/movies/7',
+    '/api/movies/0',
+    '/api/movies/abc',
+    `/api/movies/${tvShow7}`,
+  ])(
     'rejects invalid ID before repository access: %s',
     async (path) => {
       const execute = vi.fn();
@@ -193,7 +205,7 @@ describe('GET /api/movies/:id', () => {
       .mockRejectedValue(new Error('SELECT c00 FROM movie_view failed'));
     const response = await request(
       createApp({ execute } as unknown as Pool),
-    ).get('/api/movies/7');
+    ).get(`/api/movies/${movie7}`);
 
     expect(response.status).toBe(500);
     expect(response.body).toEqual({
@@ -233,7 +245,7 @@ describe('GET /api/tvshows', () => {
     expect(response.body).toEqual({
       items: [
         {
-          id: 11,
+          id: encodePublicId('tvshow', 11),
           title: 'A Show',
           premiered: '2024-01-01',
           rating: 8,
@@ -319,11 +331,11 @@ describe('GET /api/tvshows/:id', () => {
     ]);
     const response = await request(
       createApp({ execute } as unknown as Pool),
-    ).get('/api/tvshows/7');
+    ).get(`/api/tvshows/${tvShow7}`);
 
     expect(response.status).toBe(200);
     expect(response.body).toEqual({
-      id: 7,
+      id: tvShow7,
       title: 'Example Show',
       plot: 'Plot',
       premiered: '2025-01-01',
@@ -345,7 +357,7 @@ describe('GET /api/tvshows/:id', () => {
     const execute = vi.fn().mockResolvedValue([[], []]);
     const response = await request(
       createApp({ execute } as unknown as Pool),
-    ).get('/api/tvshows/999');
+    ).get(`/api/tvshows/${tvShow999}`);
 
     expect(response.status).toBe(404);
     expect(response.body).toEqual({
@@ -354,10 +366,10 @@ describe('GET /api/tvshows/:id', () => {
   });
 
   it.each([
+    '/api/tvshows/7',
     '/api/tvshows/0',
-    '/api/tvshows/-1',
-    '/api/tvshows/1.5',
     '/api/tvshows/abc',
+    `/api/tvshows/${movie7}`,
   ])('rejects invalid ID before repository access: %s', async (path) => {
     const execute = vi.fn();
     const response = await request(
@@ -377,7 +389,7 @@ describe('GET /api/tvshows/:id', () => {
       .mockRejectedValue(new Error('SELECT c00 FROM tvshow_view failed'));
     const response = await request(
       createApp({ execute } as unknown as Pool),
-    ).get('/api/tvshows/7');
+    ).get(`/api/tvshows/${tvShow7}`);
 
     expect(response.status).toBe(500);
     expect(response.body).toEqual({
@@ -408,8 +420,8 @@ describe('GET /api/search', () => {
     expect(response.status).toBe(200);
     expect(response.body).toEqual({
       items: [
-        { id: 4, title: 'Example Movie', entityType: 'movie' },
-        { id: 9, title: 'Example Show', entityType: 'tvshow' },
+        { id: encodePublicId('movie', 4), title: 'Example Movie', entityType: 'movie' },
+        { id: encodePublicId('tvshow', 9), title: 'Example Show', entityType: 'tvshow' },
       ],
       pagination: {
         page: 2,

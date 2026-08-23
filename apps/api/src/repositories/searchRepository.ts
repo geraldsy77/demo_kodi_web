@@ -1,8 +1,10 @@
 import type { Pool, RowDataPacket } from 'mysql2/promise';
 
-import type { SearchResultItem } from '../types/search.js';
-
-interface SearchRow extends RowDataPacket, SearchResultItem {}
+interface SearchRow extends RowDataPacket {
+  id: number;
+  title: string;
+  entityType: 'movie' | 'tvshow';
+}
 
 interface SearchCountRow extends RowDataPacket {
   totalItems: number | string;
@@ -15,7 +17,7 @@ interface SearchPageOptions {
 }
 
 export interface SearchPageResult {
-  items: SearchResultItem[];
+  items: Array<{ id: number; title: string; entityType: 'movie' | 'tvshow' }>;
   totalItems: number;
 }
 

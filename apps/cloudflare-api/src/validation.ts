@@ -1,4 +1,5 @@
 import { ApiError } from './http';
+import { decodePublicId, type PublicIdEntity } from './publicId';
 
 export interface PageQuery {
   page: number;
@@ -53,8 +54,8 @@ export function parseSearch(parameters: URLSearchParams): PageQuery & { q: strin
   return { ...pagination, q };
 }
 
-export function parseId(value: string, entity: 'movie' | 'tvshow'): number {
-  const id = positiveInteger(value);
+export function parseId(value: string, entity: PublicIdEntity): number {
+  const id = decodePublicId(entity, value);
   if (id === null) {
     throw new ApiError(
       400,

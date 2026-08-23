@@ -1,4 +1,5 @@
 import { ApiError } from './http';
+import { encodePublicId } from './publicId';
 import {
   getMovie,
   getMovies,
@@ -51,29 +52,53 @@ export async function route(request: Request, env: Env): Promise<Response> {
   if (url.pathname === '/api/movies') {
     const { page, pageSize } = parsePagination(url.searchParams);
     const result = await getMovies(env.DB, pageSize, (page - 1) * pageSize);
-    return Response.json(paginated(result.items, result.totalItems, page, pageSize));
+    return Response.json(paginated(
+      result.items.map((movie) => ({
+        ...movie,
+        id: encodePublicId('movie', movie.id),
+      })),
+      result.totalItems,
+      page,
+      pageSize,
+    ));
   }
   const movieMatch = /^\/api\/movies\/([^/]+)$/.exec(url.pathname);
   if (movieMatch?.[1]) {
     const movie = await getMovie(env.DB, parseId(movieMatch[1], 'movie'));
     if (!movie) throw new ApiError(404, 'MOVIE_NOT_FOUND', 'Movie not found.');
-    return Response.json(movie);
+    return Response.json({ ...movie, id: encodePublicId('movie', movie.id) });
   }
   if (url.pathname === '/api/tvshows') {
     const { page, pageSize } = parsePagination(url.searchParams);
     const result = await getTvShows(env.DB, pageSize, (page - 1) * pageSize);
-    return Response.json(paginated(result.items, result.totalItems, page, pageSize));
+    return Response.json(paginated(
+      result.items.map((show) => ({
+        ...show,
+        id: encodePublicId('tvshow', show.id),
+      })),
+      result.totalItems,
+      page,
+      pageSize,
+    ));
   }
   const showMatch = /^\/api\/tvshows\/([^/]+)$/.exec(url.pathname);
   if (showMatch?.[1]) {
     const show = await getTvShow(env.DB, parseId(showMatch[1], 'tvshow'));
     if (!show) throw new ApiError(404, 'TV_SHOW_NOT_FOUND', 'TV show not found.');
-    return Response.json(show);
+    return Response.json({ ...show, id: encodePublicId('tvshow', show.id) });
   }
   if (url.pathname === '/api/search') {
     const { q, page, pageSize } = parseSearch(url.searchParams);
     const result = await search(env.DB, q, pageSize, (page - 1) * pageSize);
-    return Response.json(paginated(result.items, result.totalItems, page, pageSize));
+    return Response.json(paginated(
+      result.items.map((item) => ({
+        ...item,
+        id: encodePublicId(item.entityType, item.id),
+      })),
+      result.totalItems,
+      page,
+      pageSize,
+    ));
   }
 
   throw new ApiError(404, 'NOT_FOUND', 'Route not found.');

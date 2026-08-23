@@ -108,9 +108,13 @@ In a second SSH session:
 ```sh
 curl --fail http://127.0.0.1:8181/api/health
 curl --fail http://127.0.0.1:8181/api/library/summary
-curl --fail -H 'Accept: text/html' http://127.0.0.1:8181/movies/1 >/dev/null
+curl --fail -H 'Accept: text/html' http://127.0.0.1:8181/movies/QaaaaaaaaAA >/dev/null
 free -m
 ```
+
+The final command checks the SPA fallback only; its sample opaque ID does not
+need to identify a real movie. Numeric detail URLs such as `/movies/1` are no
+longer part of the public API contract.
 
 Stop the foreground process with `Ctrl+C`. Do not proceed if available memory
 remains below roughly 20 MB, swap grows continuously, DSM becomes unstable, or
@@ -165,6 +169,12 @@ https://kodi/
 https://kodi/movies
 https://kodi/api/health
 ```
+
+When a frontend or API contract changes, run `npm.cmd run package:nas` again on
+Windows, transfer and extract the new archive, rerun the production dependency
+installation, and restart the service. The release package includes Vite
+public assets (including the favicon) and the compiled API, so no source build
+is required on the DS115j.
 
 The `kodi` hostname must resolve to the NAS on each LAN client. For the locally
 trusted HTTPS certificate and device trust instructions, follow

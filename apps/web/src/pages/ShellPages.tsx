@@ -63,7 +63,11 @@ export function HomePage() {
     <div className="dashboard">
       <header className="page-heading home-heading">
         <p className="eyebrow">Private media library</p>
-        <h1>Your library.</h1>
+        <h1 className="brand-heading">
+          <img className="brand-heading-logo" src="/g-logo.svg" alt="" />
+          <span className="visually-hidden">g</span>
+          <span>'s library.</span>
+        </h1>
         <p className="page-intro">
           A quiet overview of the movies and shows available on your network.
         </p>

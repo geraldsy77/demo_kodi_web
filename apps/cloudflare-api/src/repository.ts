@@ -119,7 +119,8 @@ export async function getMovies(
       artwork_url AS artworkUrl
       FROM movies
       WHERE snapshot_id = ${activeSnapshot}
-      ORDER BY title COLLATE NOCASE ASC, id ASC
+      ORDER BY date_added IS NULL ASC, date_added DESC,
+        title COLLATE NOCASE ASC, id ASC
       LIMIT ?1 OFFSET ?2`).bind(limit, offset),
   ]);
   return {
@@ -160,7 +161,8 @@ export async function getTvShows(
       artwork_url AS artworkUrl
       FROM tv_shows
       WHERE snapshot_id = ${activeSnapshot}
-      ORDER BY title COLLATE NOCASE ASC, id ASC
+      ORDER BY date_added IS NULL ASC, date_added DESC,
+        title COLLATE NOCASE ASC, id ASC
       LIMIT ?1 OFFSET ?2`).bind(limit, offset),
   ]);
   return {
