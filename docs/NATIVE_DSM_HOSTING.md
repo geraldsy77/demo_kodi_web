@@ -42,6 +42,14 @@ Upload to the NAS:
 scp .\dist-nas\kodi-web-nas-release.tar.gz gerald@gerald-nas:/volume1/web/
 ```
 
+If DSM reports `subsystem request failed on channel 0`, force the legacy SCP
+protocol because this DSM version does not provide the SFTP subsystem used by
+newer Windows OpenSSH clients:
+
+```powershell
+scp.exe -O .\dist-nas\kodi-web-nas-release.tar.gz gerald@192.168.0.3:/volume1/web/
+```
+
 Optionally verify the Windows checksum again:
 
 ```powershell
@@ -193,6 +201,95 @@ In DSM Task Scheduler, create a triggered user-defined task:
 | Command | `/volume1/web/kodi-web/scripts/nas/start-kodi-web.sh` |
 
 Run the task manually once, then check the status script and health endpoint.
+
+## Updating an existing LAN installation from Windows
+
+Use this procedure for later frontend or API releases. It preserves the NAS
+`.env`, D1 synchronization state, logs, DSM scheduled tasks, reverse proxy, and
+locally trusted certificate.
+
+### 1. Build and checksum the release on Windows
+
+From the repository root:
+
+```powershell
+Set-Location D:\web_dev\demo_kodi_web
+npm.cmd run package:nas
+Get-FileHash .\dist-nas\kodi-web-nas-release.tar.gz -Algorithm SHA256
+```
+
+### 2. Transfer the archive
+
+The DS115j requires legacy SCP mode with the current Windows OpenSSH client:
+
+```powershell
+scp.exe -O .\dist-nas\kodi-web-nas-release.tar.gz gerald@192.168.0.3:/volume1/web/
+ssh gerald@192.168.0.3
+```
+
+On the NAS, compare the archive checksum with the Windows result:
+
+```sh
+cd /volume1/web
+sha256sum kodi-web-nas-release.tar.gz
+```
+
+Do not continue if the checksums differ.
+
+### 3. Stop and extract the release
+
+```sh
+/volume1/web/kodi-web/scripts/nas/stop-kodi-web.sh
+cd /volume1/web
+tar -xzf kodi-web-nas-release.tar.gz
+```
+
+Do not delete `/volume1/web/kodi-web` before extraction. The release archive
+does not contain `.env`, so extracting it in place preserves:
+
+```text
+/volume1/web/kodi-web/.env
+/volume1/web/kodi-web/run/
+/volume1/web/kodi-web/logs/
+/volume1/web/kodi-web/apps/api/node_modules/
+```
+
+Never run `cp .env.example .env` during an upgrade because that would replace
+the working MariaDB credentials and synchronization configuration.
+
+### 4. Refresh runtime dependencies and permissions
+
+```sh
+cd /volume1/web/kodi-web/apps/api
+/usr/local/bin/npm ci --omit=dev --ignore-scripts --no-audit --no-fund --workspaces=false
+chmod 750 /volume1/web/kodi-web/scripts/nas/*.sh
+```
+
+The Windows packaging command normalizes the shell scripts to Unix LF line
+endings before creating the archive.
+
+### 5. Start and verify the release
+
+```sh
+/volume1/web/kodi-web/scripts/nas/start-kodi-web.sh
+/volume1/web/kodi-web/scripts/nas/status-kodi-web.sh
+curl --fail http://127.0.0.1:8181/api/health
+curl --fail http://127.0.0.1:8181/api/library/summary
+curl --fail 'http://127.0.0.1:8181/api/movies?page=1&pageSize=1'
+```
+
+If startup fails, inspect the application log:
+
+```sh
+tail -n 50 /volume1/web/kodi-web/logs/kodi-web.log
+```
+
+Finally, verify `https://kodi`, its movie and TV-show detail routes, and the
+favicon from a LAN client. Use `Ctrl+F5` for a desktop hard refresh. If Android
+Chrome retains the old site or favicon, force-stop Chrome and reopen it.
+
+The DSM reverse proxy, certificate, router hostname, boot task, and scheduled
+D1 synchronization task do not require changes for an application upgrade.
 
 ## Rollback
 
