@@ -535,6 +535,107 @@ instructions.
 
 ---
 
+# EPIC KODI-E7 — Manual synchronization from KODI
+
+Technical design and starter code for this epic are recorded in
+[`KODI_ADDON_SYNC_DESIGN.md`](KODI_ADDON_SYNC_DESIGN.md). These tickets are
+planning artifacts only; none of the trigger or add-on code is active yet.
+
+## KODI-505 — Add a protected LAN synchronization trigger API
+**Type:** Story
+**Priority:** High
+**Sprint:** Future — KODI add-on sync
+**Status:** BACKLOG
+**Story points:** 8
+**Depends on:** KODI-406
+
+**Goal**
+Allow an authenticated client on the private LAN to start the existing NAS D1
+snapshot runner and poll a stable success/failure result without exposing shell
+execution, MariaDB credentials, or the Cloudflare ingestion token.
+
+**API contract**
+- `POST /api/internal/sync/runs` with a bearer trigger token returns `202` and a UUID `runId` when accepted.
+- `GET /api/internal/sync/runs/:runId` with the same token returns `running`, `success`, or `failure` plus non-sensitive timestamps and counts.
+- A second request while a manual or scheduled run owns the runner lock returns `409 SYNC_ALREADY_RUNNING`.
+- Invalid/missing credentials return `401`; malformed run IDs return `400`; unknown run IDs return `404` using the standard error envelope.
+
+**Acceptance criteria**
+- The route is mounted only by the native Express/DSM application when `KODI_ADDON_TRIGGER_ENABLED=true`; it is not added to the Cloudflare Worker or Pages proxy allowlist.
+- Authentication uses a dedicated `KODI_ADDON_TRIGGER_TOKEN` of at least 32 characters and timing-safe comparison. It must not reuse `KODI_SYNC_TOKEN`.
+- The service invokes only the configured absolute `KODI_SYNC_RUNNER_PATH` with `spawn(..., { shell: false })`; request data can never select a command, path, or argument.
+- Run state is written atomically with mode `0600` to `KODI_MANUAL_SYNC_STATUS_FILE` and exposes no logs, paths, tokens, SQL, or raw exceptions.
+- Completion is correlated with the existing `KODI_SYNC_STATUS_FILE`; successful responses include movie/TV counts and failures expose only stable failure codes.
+- The source-controlled NAS release contains an LF-normalized, executable `run-kodi-sync.sh` using the existing lock, log rotation, Node CLI, and exit-code behavior.
+- DSM firewall/reverse-proxy documentation keeps the endpoint LAN-only and explicitly forbids router port forwarding.
+- Tests cover disabled routing, authentication, token comparison, accepted runs, duplicate runs, invalid/unknown IDs, spawn failure, exit success/failure, persistence, redaction, and proof that request values never reach `spawn`.
+- API lint, tests, build, and the NAS packaging command pass; the archive contains the compiled trigger code and runner.
+
+**Implementation notes**
+- Use the route → controller → service layering described in `AGENTS.md`.
+- Planned files and TypeScript starter code are in `docs/KODI_ADDON_SYNC_DESIGN.md` under “KODI-505”.
+- Cancelling client polling must not terminate an in-progress snapshot; the runner remains authoritative.
+
+---
+
+## KODI-506 — Create the KODI manual Cloudflare-sync add-on
+**Type:** Story
+**Priority:** High
+**Sprint:** Future — KODI add-on sync
+**Status:** BACKLOG
+**Story points:** 5
+**Depends on:** KODI-505
+
+**Goal**
+Provide an installable KODI Python script add-on that confirms a manual action,
+starts a NAS synchronization run, polls its result, and clearly reports success
+or failure inside KODI.
+
+**Acceptance criteria**
+- The add-on ID is `script.glabs.kodi-sync` and its ZIP has the correct top-level add-on directory, `addon.xml`, Python entry point, settings, localized strings, and icon.
+- Settings provide the LAN base URL (default `https://kodi`), dedicated trigger token, and optional CA-certificate path; no hostname, credential, or token is hardcoded in Python.
+- The add-on calls only the KODI-505 LAN endpoints and never connects directly to MariaDB, D1, or the private Worker ingestion endpoint.
+- TLS verification remains enabled. A repository/documented CA file may be selected when KODI's Python trust store does not recognize the private root; there is no “disable verification” option.
+- Before starting, KODI asks for confirmation. During the run it displays progress and polls at a bounded interval with a 15-minute maximum wait.
+- Success displays movie and TV-show counts. Authentication, duplicate-run, network, certificate, timeout, and synchronization failures have distinct user-facing messages without revealing secrets.
+- Cancelling the progress dialog stops only polling and explains that synchronization continues on the NAS.
+- Unit tests mock HTTP/KODI modules and cover confirmation, headers, URL construction, every terminal state, timeout, cancellation, malformed responses, and token redaction.
+- The add-on can be installed using KODI's “Install from zip file” workflow and runs on the project's supported KODI/Python version.
+
+**Implementation notes**
+- Planned directory structure, `addon.xml`, `settings.xml`, and Python starter code are in `docs/KODI_ADDON_SYNC_DESIGN.md` under “KODI-506”.
+- The add-on trigger token is limited to starting and observing LAN sync runs; it is still sensitive and must not be logged or committed.
+
+---
+
+## KODI-507 — Validate and document the manual-sync release flow
+**Type:** Story
+**Priority:** Medium
+**Sprint:** Future — KODI add-on sync
+**Status:** BACKLOG
+**Story points:** 3
+**Depends on:** KODI-505, KODI-506
+
+**Goal**
+Prove the complete KODI → NAS → MariaDB → Cloudflare Worker → D1 flow and make
+installation, operation, recovery, and rollback repeatable.
+
+**Acceptance criteria**
+- A Windows packaging command creates a versioned add-on ZIP and validates its root layout without embedding settings or tokens.
+- The native DSM release upgrade procedure installs the trigger API and runner while preserving `.env`, synchronization state, logs, scheduled task, reverse proxy, and certificate.
+- End-to-end evidence covers success, invalid token, an already-running scheduled sync, NAS/Worker network failure, API restart/status recovery, and preservation of the last active D1 snapshot after failure.
+- A successful manual run updates both the protected local attempt status and public `https://kodi.glabs.my/api/sync/status` metadata with matching counts.
+- Resource usage is checked on the DS115j and manual runs are documented not to overlap library scans or the Monday/Wednesday/Friday 02:00 schedule.
+- Documentation covers private-CA trust on each KODI platform, ZIP installation/upgrade, log locations, stable error codes, token rotation, disablement, and rollback.
+- Security review confirms no public trigger route, no router port forwarding, no Cloudflare/MariaDB credential in the add-on, and no secret leakage in logs or API errors.
+- Full repository lint/tests/build, NAS packaging, add-on tests/package validation, and critical KODI UI flows pass.
+
+**Implementation notes**
+- The verification matrix and packaging outline are in `docs/KODI_ADDON_SYNC_DESIGN.md` under “KODI-507”.
+- Do not disable the existing scheduled DSM task unless an explicit later operational decision changes ownership of synchronization.
+
+---
+
 # Suggested Sprint Plan
 
 ## Sprint 1 — Foundation
@@ -586,3 +687,8 @@ instructions.
 - KODI-502
 - KODI-503
 - KODI-504
+
+## Future — KODI add-on sync
+- KODI-505
+- KODI-506
+- KODI-507
