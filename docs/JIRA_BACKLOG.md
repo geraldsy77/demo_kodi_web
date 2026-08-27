@@ -538,14 +538,15 @@ instructions.
 # EPIC KODI-E7 — Manual synchronization from KODI
 
 Technical design and starter code for this epic are recorded in
-[`KODI_ADDON_SYNC_DESIGN.md`](KODI_ADDON_SYNC_DESIGN.md). These tickets are
-planning artifacts only; none of the trigger or add-on code is active yet.
+[`KODI_ADDON_SYNC_DESIGN.md`](KODI_ADDON_SYNC_DESIGN.md). KODI-505 is active
+on the native DSM deployment; the add-on and release-validation tickets remain
+in the backlog.
 
 ## KODI-505 — Add a protected LAN synchronization trigger API
 **Type:** Story
 **Priority:** High
 **Sprint:** Future — KODI add-on sync
-**Status:** BACKLOG
+**Status:** DONE
 **Story points:** 8
 **Depends on:** KODI-406
 

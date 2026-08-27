@@ -104,6 +104,29 @@ credentials. If this NAS owns D1 synchronization, also configure the
 [`KODI_SYNC_OPERATIONS.md`](KODI_SYNC_OPERATIONS.md). Keep `.env` mode `600`
 because it then contains the Worker synchronization token.
 
+To allow the future KODI add-on to start a synchronization from the private
+LAN, configure the native-only trigger separately:
+
+```dotenv
+KODI_ADDON_TRIGGER_ENABLED=true
+KODI_ADDON_TRIGGER_TOKEN=replace-with-a-separate-addon-trigger-token
+KODI_SYNC_RUNNER_PATH=/volume1/web/kodi-web/scripts/nas/run-kodi-sync.sh
+KODI_SYNC_LOCK_DIR=/volume1/web/kodi-web/run/kodi-sync.lock
+KODI_MANUAL_SYNC_STATUS_FILE=/volume1/web/kodi-web/run/kodi-manual-sync-status.json
+KODI_SYNC_STATUS_FILE=/volume1/web/kodi-web/run/kodi-sync-status.json
+```
+
+`KODI_ADDON_TRIGGER_TOKEN` and `KODI_SYNC_TOKEN` grant different permissions
+and must have different random values. The add-on token can only start and
+observe a native LAN run; it must never contain the Worker ingestion token,
+MariaDB password, or a copy of either credential. Generate and store the real
+value only in the ignored NAS `.env` and the KODI add-on settings. Do not put it
+in `.env.example`, a release archive, a command transcript, or Git.
+
+Leave `KODI_ADDON_TRIGGER_ENABLED=false` or omit it until the trigger API and
+its tests are included in the installed release. Enabling the flag with a
+missing or invalid trigger setting intentionally prevents API startup.
+
 ## 5. Test in the foreground
 
 ```sh
@@ -169,6 +192,27 @@ Use:
 Use a dedicated source hostname so the rule does not capture unrelated DSM
 traffic. Restrict access to the private LAN with DSM firewall/access-control
 rules. Do not configure router port forwarding.
+
+The manual synchronization routes use the same reverse proxy and are expected
+only at:
+
+```text
+POST https://kodi/api/internal/sync/runs
+GET  https://kodi/api/internal/sync/runs/{runId}
+```
+
+Keep `API_HOST=127.0.0.1`; clients must reach the API through the DSM HTTPS
+reverse proxy rather than connecting directly to port `8181`. In DSM Firewall,
+allow HTTPS port `443` from the trusted private-LAN subnet and deny it from
+untrusted interfaces according to the rest of the NAS policy. Review DSM
+management rules before changing firewall order so administration access is
+not accidentally blocked.
+
+Do not create a router port-forward, public DNS record, Cloudflare Tunnel,
+Worker route, Pages proxy, or other Internet path for
+`/api/internal/sync/runs`. The bearer token is a second control, not a reason to
+make the trigger public. The public `kodi.glabs.my` Worker exposes read/status
+APIs only and must not forward this native trigger route.
 
 Verify:
 
@@ -290,6 +334,11 @@ Chrome retains the old site or favicon, force-stop Chrome and reopen it.
 
 The DSM reverse proxy, certificate, router hostname, boot task, and scheduled
 D1 synchronization task do not require changes for an application upgrade.
+After an upgrade that introduces or changes the manual trigger, repeat the
+authenticated LAN smoke test in
+[`KODI_SYNC_OPERATIONS.md`](KODI_SYNC_OPERATIONS.md) and confirm that an active
+scheduled run returns `409 SYNC_ALREADY_RUNNING` rather than starting another
+process.
 
 ## Rollback
 

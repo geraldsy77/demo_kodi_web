@@ -12,10 +12,20 @@ import { createMovieService } from './services/movieService.js';
 import { createSearchService } from './services/searchService.js';
 import { createTvShowService } from './services/tvShowService.js';
 import { mountStaticWebApplication } from './web/staticWebApplication.js';
+import { createManualSyncRouter } from './routes/manualSyncRoutes.js';
+import type {
+  ManualSyncTriggerService,
+} from './services/manualSyncTriggerService.js';
+
 
 interface AppOptions {
   webDistPath?: string;
+  manualSync?: {
+    service: ManualSyncTriggerService;
+    triggerToken: string;
+  };
 }
+
 
 export function createApp(pool: Pool, options: AppOptions = {}): Express {
   const app = express();
@@ -30,6 +40,17 @@ export function createApp(pool: Pool, options: AppOptions = {}): Express {
   app.use('/api/movies', createMovieRouter(createMovieService(pool)));
   app.use('/api/tvshows', createTvShowRouter(createTvShowService(pool)));
   app.use('/api/search', createSearchRouter(createSearchService(pool)));
+
+  if (options.manualSync) {
+    app.use(
+      '/api/internal/sync',
+      createManualSyncRouter(
+        options.manualSync.service,
+        options.manualSync.triggerToken,
+      ),
+    );
+  }
+
   if (options.webDistPath) {
     mountStaticWebApplication(app, options.webDistPath);
   }
