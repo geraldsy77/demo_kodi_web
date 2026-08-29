@@ -429,7 +429,7 @@ of KODI library metadata without exposing the Synology MariaDB service.
 **Type:** Story  
 **Priority:** Low  
 **Sprint:** Final stage  
-**Status:** BACKLOG  
+**Status:** CANCELLED
 **Story points:** 2  
 **Depends on:** KODI-405, KODI-406
 
@@ -613,7 +613,7 @@ or failure inside KODI.
 **Type:** Story
 **Priority:** Medium
 **Sprint:** Future — KODI add-on sync
-**Status:** IN PROGRESS
+**Status:** DONE
 **Story points:** 3
 **Depends on:** KODI-505, KODI-506
 
