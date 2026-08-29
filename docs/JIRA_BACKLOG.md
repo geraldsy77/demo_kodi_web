@@ -539,8 +539,8 @@ instructions.
 
 Technical design and starter code for this epic are recorded in
 [`KODI_ADDON_SYNC_DESIGN.md`](KODI_ADDON_SYNC_DESIGN.md). KODI-505 is active
-on the native DSM deployment; the add-on and release-validation tickets remain
-in the backlog.
+on the native DSM deployment, KODI-506 implementation is in progress, and the
+release-validation ticket remains in the backlog.
 
 ## KODI-505 — Add a protected LAN synchronization trigger API
 **Type:** Story
@@ -583,7 +583,7 @@ execution, MariaDB credentials, or the Cloudflare ingestion token.
 **Type:** Story
 **Priority:** High
 **Sprint:** Future — KODI add-on sync
-**Status:** BACKLOG
+**Status:** IN PROGRESS
 **Story points:** 5
 **Depends on:** KODI-505
 

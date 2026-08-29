@@ -1,0 +1,88 @@
+# Kodi Media Center language file
+msgid ""
+msgstr ""
+"Project-Id-Version: script.glabs.kodi-sync\n"
+"Language: en_GB\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgctxt "#32000"
+msgid "Connection"
+msgstr ""
+
+msgctxt "#32001"
+msgid "NAS URL"
+msgstr ""
+
+msgctxt "#32002"
+msgid "Add-on trigger token"
+msgstr ""
+
+msgctxt "#32003"
+msgid "Private CA certificate (local or network)"
+msgstr ""
+
+msgctxt "#32004"
+msgid "NAS IP override (optional)"
+msgstr ""
+
+msgctxt "#32100"
+msgid "g's library sync"
+msgstr ""
+
+msgctxt "#32101"
+msgid "Configure the HTTPS NAS URL, a valid optional NAS IP override, and a dedicated trigger token of at least 32 characters."
+msgstr ""
+
+msgctxt "#32102"
+msgid "Synchronize the library to Cloudflare now?"
+msgstr ""
+
+msgctxt "#32103"
+msgid "Starting synchronization..."
+msgstr ""
+
+msgctxt "#32104"
+msgid "Synchronization is running..."
+msgstr ""
+
+msgctxt "#32105"
+msgid "Synchronization completed. Movies: {0}  TV shows: {1}"
+msgstr ""
+
+msgctxt "#32106"
+msgid "Authentication failed. Check the dedicated add-on trigger token."
+msgstr ""
+
+msgctxt "#32107"
+msgid "A synchronization run is already in progress."
+msgstr ""
+
+msgctxt "#32108"
+msgid "The NAS synchronization service is unavailable. Check the LAN connection."
+msgstr ""
+
+msgctxt "#32109"
+msgid "The NAS certificate could not be verified. Check the selected private CA certificate."
+msgstr ""
+
+msgctxt "#32110"
+msgid "Synchronization failed with code {0}. Check the NAS synchronization log."
+msgstr ""
+
+msgctxt "#32111"
+msgid "Status monitoring timed out after 15 minutes. Synchronization may still be running on the NAS."
+msgstr ""
+
+msgctxt "#32112"
+msgid "Status monitoring stopped. Synchronization continues on the NAS."
+msgstr ""
+
+msgctxt "#32113"
+msgid "The NAS returned an invalid synchronization response."
+msgstr ""
+
+msgctxt "#32114"
+msgid "The NAS synchronization service returned an error."
+msgstr ""

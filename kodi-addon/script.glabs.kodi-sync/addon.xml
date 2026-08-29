@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<addon
+  id="script.glabs.kodi-sync"
+  name="g's library sync"
+  version="0.1.3"
+  provider-name="gLabs">
+
+  <requires>
+    <import addon="xbmc.python" version="3.0.1"/>
+  </requires>
+
+  <extension point="xbmc.python.script" library="addon.py"/>
+
+  <extension point="xbmc.addon.metadata">
+    <summary lang="en_GB">Synchronize g's KODI library to Cloudflare</summary>
+    <description lang="en_GB">Starts the private NAS snapshot synchronization and reports its result.</description>
+    <platform>all</platform>
+    <license>MIT</license>
+    <assets>
+      <icon>resources/icon.png</icon>
+    </assets>
+  </extension>
+</addon>

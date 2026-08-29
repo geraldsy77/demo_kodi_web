@@ -622,18 +622,29 @@ The final ticket should place this behavior in a source-controlled script. The
 equivalent developer command is:
 
 ```powershell
-$version = '0.1.0'
-$source = Resolve-Path '.\kodi-addon\script.glabs.kodi-sync'
-$output = Join-Path (Resolve-Path '.').Path 'dist-kodi-addon'
-New-Item -ItemType Directory -Force -Path $output | Out-Null
+[xml]$manifest = Get-Content '.\kodi-addon\script.glabs.kodi-sync\addon.xml'
+$version = $manifest.addon.version
+$output = (New-Item -ItemType Directory -Force '.\dist-kodi-addon').FullName
 $zip = Join-Path $output "script.glabs.kodi-sync-$version.zip"
 if (Test-Path -LiteralPath $zip) { Remove-Item -LiteralPath $zip -Force }
-Compress-Archive -LiteralPath $source -DestinationPath $zip
+
+Push-Location '.\kodi-addon'
+try {
+  tar.exe -a -c -f $zip 'script.glabs.kodi-sync'
+}
+finally {
+  Pop-Location
+}
+
 tar.exe -tf $zip
 ```
 
-Before release, confirm the listing begins with
-`script.glabs.kodi-sync/addon.xml` and contains no generated settings or secret.
+Use libarchive's `tar.exe` rather than PowerShell's `Compress-Archive` because
+the latter can create ZIP entry names with Windows backslashes. KODI requires
+forward slashes. Before release, confirm that `script.glabs.kodi-sync/` is the
+single top-level directory, that entries such as
+`script.glabs.kodi-sync/addon.xml` use `/`, and that the archive contains no
+generated settings, caches, certificates, or secrets.
 
 ### Native DSM release sequence
 
@@ -716,4 +727,3 @@ snapshot.
 - [KODI add-on manager and install from ZIP](https://kodi.wiki/view/Add-on_manager)
 - [KODI add-on settings](https://kodi.wiki/view/Add-on_settings)
 - [KODI GUI Python API overview](https://kodi.wiki/view/GUI_tutorial)
-

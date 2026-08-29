@@ -1,7 +1,10 @@
 node_modules/
 dist/
 dist-nas/
+dist-kodi-addon/
 coverage/
+__pycache__/
+*.pyc
 .env
 .env.*
 !.env.example
