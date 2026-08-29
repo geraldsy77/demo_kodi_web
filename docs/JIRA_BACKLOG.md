@@ -583,7 +583,7 @@ execution, MariaDB credentials, or the Cloudflare ingestion token.
 **Type:** Story
 **Priority:** High
 **Sprint:** Future — KODI add-on sync
-**Status:** IN PROGRESS
+**Status:** DONE
 **Story points:** 5
 **Depends on:** KODI-505
 
@@ -613,7 +613,7 @@ or failure inside KODI.
 **Type:** Story
 **Priority:** Medium
 **Sprint:** Future — KODI add-on sync
-**Status:** BACKLOG
+**Status:** IN PROGRESS
 **Story points:** 3
 **Depends on:** KODI-505, KODI-506
 

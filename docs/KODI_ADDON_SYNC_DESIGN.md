@@ -618,8 +618,14 @@ that exception text and tokens never reach the UI or logs.
 
 ### Windows add-on packaging command
 
-The final ticket should place this behavior in a source-controlled script. The
-equivalent developer command is:
+KODI-507 provides the source-controlled command:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass `
+  -File .\scripts\package-kodi-addon.ps1
+```
+
+The equivalent manual developer command is:
 
 ```powershell
 [xml]$manifest = Get-Content '.\kodi-addon\script.glabs.kodi-sync\addon.xml'

@@ -25,10 +25,21 @@ Increase the `version` attribute in
 ID, `script.glabs.kodi-sync`, unchanged so KODI treats a higher version as an
 upgrade and preserves the user's settings.
 
-Run the following from the repository root in PowerShell. Use the Windows
-`tar.exe` supplied by libarchive to create the ZIP. Do not use PowerShell's
-`Compress-Archive`: on Windows it can write backslashes (`\`) into ZIP entry
-names, and KODI rejects that archive as having an invalid structure.
+Run the source-controlled packager from the repository root in PowerShell:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass `
+  -File .\scripts\package-kodi-addon.ps1
+```
+
+The script reads the version from `addon.xml`, uses the Windows `tar.exe`
+supplied by libarchive, and validates the finished ZIP. It rejects missing
+required files; Windows backslashes in ZIP entries; certificates, private
+keys, caches, and generated add-on data in the source tree. Do not use
+PowerShell's `Compress-Archive`: on Windows it can write backslashes (`\`) into
+ZIP entry names, and KODI rejects that archive as having an invalid structure.
+
+The equivalent manual process is retained here for troubleshooting:
 
 ```powershell
 [xml]$manifest = Get-Content '.\kodi-addon\script.glabs.kodi-sync\addon.xml'
