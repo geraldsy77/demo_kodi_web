@@ -193,3 +193,12 @@ Development follows one Jira-style ticket at a time in
 [JIRA_BACKLOG.md](docs/JIRA_BACKLOG.md), under the rules in [AGENTS.md](AGENTS.md).
 Architecture details are in [ARCHITECTURE.md](docs/ARCHITECTURE.md), and the
 completion checklist is in [DEFINITION_OF_DONE.md](docs/DEFINITION_OF_DONE.md).
+
+Maintainer-facing documents:
+
+- [Project handover assessment](docs/PROJECT_HANDOVER_ASSESSMENT.md) — the
+  verified state of the repository, deviations from `AGENTS.md`, security and
+  technical-debt findings, and recommended next tickets.
+- [Synchronization troubleshooting](docs/KODI_SYNC_TROUBLESHOOTING.md) — how to
+  diagnose a public site that is missing titles the NAS site shows, including
+  the read-only queries to run.

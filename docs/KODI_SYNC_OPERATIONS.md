@@ -202,6 +202,12 @@ free -m
 Staleness never deactivates the last completed snapshot. Public library routes
 continue serving that snapshot while the next run or recovery is pending.
 
+The configured stale threshold is shorter than the Friday-to-Monday gap, so a
+`stale: true` reading between Sunday 02:00 and Monday 02:00 is expected rather
+than a fault. See
+[`KODI_SYNC_TROUBLESHOOTING.md`](KODI_SYNC_TROUBLESHOOTING.md) before treating
+a status value as an incident.
+
 ## Manual rerun and recovery
 
 Run the same protected runner manually rather than invoking a second copy of
@@ -230,6 +236,11 @@ If it fails:
 The automated tests cover persisted success/failure metadata, preservation of
 the previous success, partial-upload resume behavior, atomic activation, and
 continued public reads when stale.
+
+If the public library is missing titles that the NAS site shows, work through
+[`KODI_SYNC_TROUBLESHOOTING.md`](KODI_SYNC_TROUBLESHOOTING.md) before changing
+any configuration. A snapshot that is simply older than the newest library
+change is the expected explanation for most differences.
 
 ## Disable or roll back scheduling
 
